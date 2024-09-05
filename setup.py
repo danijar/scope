@@ -19,7 +19,7 @@ def parse_version(filename):
 setuptools.setup(
     name='scope',
     version=parse_version('scope/__init__.py'),
-    description='Metrics logging and analysis.',
+    description='Metrics logging and analysis',
     url='http://github.com/danijar/scope',
     long_description=pathlib.Path('README.md').read_text(),
     long_description_content_type='text/markdown',
