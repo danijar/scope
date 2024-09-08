@@ -131,10 +131,12 @@ class ImageColumn(FileColumn):
   def validate(self, value):
     assert (
         value.dtype == np.uint8 and value.ndim == 3 and
-        value.shape[-1] == 3), (value.dtype, value.shape)
+        value.shape[-1] in (1, 3)), (value.dtype, value.shape)
     return value
 
   def encode(self, value):
+    if value.shape[-1] == 1:
+      value = value.repeat(3, -1)
     fmt = ('jpeg' if self.fmt == 'jpg' else self.fmt).upper()
     fp = io.BytesIO()
     Image.fromarray(value).save(fp, format=fmt, quality=self.quality)
@@ -155,11 +157,13 @@ class VideoColumn(FileColumn):
   def validate(self, value):
     assert (
         value.dtype == np.uint8 and value.ndim == 4 and
-        value.shape[-1] == 3), (value.dtype, value.shape)
+        value.shape[-1] in (1, 3)), (value.dtype, value.shape)
     return value
 
-  def encode(self, array):
-    T, H, W, C = array.shape
+  def encode(self, value):
+    if value.shape[-1] == 1:
+      value = value.repeat(3, -1)
+    T, H, W, C = value.shape
     fp = io.BytesIO()
     output = av.open(fp, mode='w', format=self.fmt)
     stream = output.add_stream(self.codec, rate=float(self.fps))
@@ -167,7 +171,7 @@ class VideoColumn(FileColumn):
     stream.height = H
     stream.pix_fmt = 'yuv420p'
     for t in range(T):
-      frame = av.VideoFrame.from_ndarray(array[t], format='rgb24')
+      frame = av.VideoFrame.from_ndarray(value[t], format='rgb24')
       frame.pts = t
       output.mux(stream.encode(frame))
     output.mux(stream.encode(None))
@@ -176,9 +180,9 @@ class VideoColumn(FileColumn):
 
   def decode(self, buffer):
     container = av.open(io.BytesIO(buffer))
-    array = []
+    value = []
     for frame in container.decode(video=0):
-      array.append(frame.to_ndarray(format='rgb24'))
-    array = np.stack(array)
+      value.append(frame.to_ndarray(format='rgb24'))
+    value = np.stack(value)
     container.close()
-    return array
+    return value
