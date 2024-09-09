@@ -10,7 +10,7 @@ from . import columns
 
 class Writer:
 
-  def __init__(self, logdir, fps=20, workers=32):
+  def __init__(self, logdir, fps=20, workers=8):
     if isinstance(logdir, str):
       logdir = pathlib.Path(logdir)
     self.logdir = logdir
