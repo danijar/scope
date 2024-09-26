@@ -5,17 +5,25 @@ import Selector from './Selector.vue'
 const state = reactive({
   status: 'loading...',
   exps: [],
+  leafs: {},  //  {exp: leafs}
+  keys: {}, // {leaf: keys}
   expsSelected: new Set(),
-  expsRuns: {},
+  leafsSelected: new Set(),
+  keysSelected: new Set(),
 })
 
-const flatRuns = computed(() => {
-  let runs = []
-  for (const exp of state.expsSelected) {
-    runs = runs.concat(state.expsRuns[exp])
-  }
-  console.log('flat runs', runs)
-  return runs
+const flatLeafs = computed(() => {
+  let leafs = []
+  for (const exp of state.expsSelected)
+    leafs = leafs.concat(state.leafs[exp])
+  return leafs
+})
+
+const flatKeys = computed(() => {
+  let keys = []
+  for (const leaf of state.leafsSelected)
+    keys = keys.concat(state.keys[leaf])
+  return keys
 })
 
 onMounted(async () => {
@@ -26,44 +34,59 @@ onMounted(async () => {
 })
 
 async function selectExp(exp) {
-  console.log('select', exp)
-  if (!(exp in state.expsRuns)) {
-    state.status = 'loading...'
-    const response = await fetch(`/api/exp/${exp}`)
-    const result = await response.json()
-    console.log(result);
-    state.expsRuns[exp] = result['runs']
-    state.status = ''
-  }
+  // if (!(exp in state.leafs)) {
+  state.status = 'loading...'
+  const response = await fetch(`/api/leafs/${exp}`)
+  const result = await response.json()
+  state.leafs[exp] = result['leafs']
+  state.status = ''
+  // }
   state.expsSelected.add(exp);
 }
 
 function unselectExp(exp) {
   state.expsSelected.delete(exp);
-  console.log('unselect', exp)
 }
+
+async function selectLeaf(leaf) {
+  // if (!(leaf in state.keys)) {
+  state.status = 'loading...'
+  const leafEncoded = leaf.replace(/\//g, ':')
+  console.log(leafEncoded)
+  const response = await fetch(`/api/keys/${leafEncoded}`)
+  const result = await response.json()
+  console.log('keys', result)
+  state.keys[leaf] = result['keys']
+  state.status = ''
+  // }
+  state.leafsSelected.add(leaf);
+}
+
+function unselectLeaf(leaf) {
+  state.leafsSelected.delete(leaf);
+}
+
 
 </script>
 
 <template>
 <div class="left">
+  <Selector :items="flatKeys" @select="selectKey" @unselect="unselectKey" class="selector" title="Metrics" />
 </div>
 <div class="center">
   <span>{{ state.status }}</span>
 </div>
 <div class="right">
   <Selector :items="state.exps" @select="selectExp" @unselect="unselectExp" class="selector" title="Experiments" />
-  <Selector :items="flatRuns" class="selector" title="Runs" />
+  <Selector :items="flatLeafs" @select="selectLeaf" @unselect="unselectLeaf" class="selector" title="Leafs" />
 </div>
 </template>
 
 <style scoped>
-.center { flex: 1 1 20rem; overflow: auto; }
-.left { flex: 0 1 20rem; overflow: hidden; display: flex; flex-direction: column; }
-.right { flex: 0 1 20rem; overflow: hidden; display: flex; flex-direction: column; }
+.center { flex: 1 1 20rem; overflow: auto; background: #eee; padding: 1rem; }
+.left, .right { flex: 0 1 20rem; overflow: hidden; display: flex; flex-direction: column; padding: 1rem 0 0 1rem; }
 
-.right > .selector { flex: 1 1 50%; background: #eee; }
-
-.selector { overflow: hidden; padding: .5rem 1rem; }
+.selector { flex: 1 1 0; overflow: hidden; } /* padding: .5rem 1rem; } */
+.selector:not(:first-child) { margin-top: 1.5rem; }
 
 </style>

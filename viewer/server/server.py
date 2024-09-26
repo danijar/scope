@@ -1,3 +1,4 @@
+import urllib
 import subprocess
 
 import uvicorn
@@ -27,15 +28,43 @@ def get_exps():
   return {'exps': exps}
 
 
-@app.get('/exp/{exp}')
-def get_exp(exp: str):
-  folders = ls(root / exp, folders=True, files=False)
-  runs = [x[:-1].rsplit('/', 1)[-1] for x in folders]
-  return {'exp': exp, 'runs': runs}
+@app.get('/leafs/{exp}')
+def get_leafs(exp: str):
+  leafs = find_leafs(root / exp)
+  prefix = str(root)
+  leafs = [x.removeprefix(prefix).strip('/') for x in leafs]
+  return {'leafs': leafs}
+
+
+@app.get('/keys/{leaf}')
+def get_keys(leaf: str):
+  leaf = leaf.replace(':', '/') + '/scope'
+  keys = ls(root / leaf)
+  prefix = str(root / leaf) + '/'
+  keys = [x.removeprefix(prefix).strip('/') for x in keys]
+  return {'keys': keys}
+
+
+def find_leafs(folder):
+  leafs = []
+  queue = [folder]
+  while queue:
+    node = queue.pop(0)
+    children = ls(node, folders=True, files=False)
+    if not children:
+      pass
+    elif any(x.endswith('/scope/') for x in children):
+      leafs.append(node.strip('/'))
+    else:
+      queue += children
+  return leafs
 
 
 def ls(folder, folders=True, files=True):
-  output = subprocess.check_output(['gsutil', 'ls', str(folder)])
+  try:
+    output = subprocess.check_output(['gsutil', 'ls', str(folder)])
+  except subprocess.CalledProcessError:
+    output = ''
   lines = [x.decode('utf-8') for x in output.splitlines()]
   results = []
   if folders:
