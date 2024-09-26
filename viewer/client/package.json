@@ -1,0 +1,23 @@
+{
+  "name": "scope",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "frontend": "vite",
+    "backend": "python ../server/server.py",
+    "dev": "concurrently 'npm run frontend' 'npm run backend'",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.29",
+    "vue-router": "^4.3.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.5",
+    "concurrently": "^9.0.1",
+    "vite": "^5.3.1",
+    "vite-plugin-vue-devtools": "^7.3.1"
+  }
+}

@@ -1,0 +1,15 @@
+*.local
+*.log
+.DS_Store
+/cypress/screenshots/
+/cypress/videos/
+coverage
+dist
+dist-ssr
+lerna-debug.log*
+logs
+node_modules
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
