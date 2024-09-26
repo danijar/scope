@@ -22,11 +22,27 @@ app = fastapi.FastAPI(debug=True)
 
 @app.get('/exps')
 def get_exps():
-  output = subprocess.check_output(['gsutil', 'ls', args.root])
+  folders = ls(root, folders=True, files=False)
+  exps = [x[:-1].rsplit('/', 1)[-1] for x in folders]
+  return {'exps': exps}
+
+
+@app.get('/exp/{exp}')
+def get_exp(exp: str):
+  folders = ls(root / exp, folders=True, files=False)
+  runs = [x[:-1].rsplit('/', 1)[-1] for x in folders]
+  return {'exp': exp, 'runs': runs}
+
+
+def ls(folder, folders=True, files=True):
+  output = subprocess.check_output(['gsutil', 'ls', str(folder)])
   lines = [x.decode('utf-8') for x in output.splitlines()]
-  folders = [x[:-1] for x in lines if x.endswith('/')]
-  expnames = [x.rsplit('/', 1)[-1] for x in folders]
-  return {'exps': expnames}
+  results = []
+  if folders:
+    results += [line for line in lines if line.endswith('/')]
+  if files:
+    results += [line for line in lines if not line.endswith('/')]
+  return results
 
 
 if __name__ == '__main__':
