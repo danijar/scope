@@ -23,10 +23,13 @@ def table_write(filename, fmt, *cols):
 
 def table_read(filename, fmt, start=0, stop=None):
   assert stop is None or start < stop, (start, stop)
-  size = struct.calcsize(fmt)
-  with filename.open('rb') as f:
-    start and f.seek(start * size)
-    buffer = f.read((stop - start) * size if stop else None)
+  if start == 0 and stop is None:
+    buffer = filename.read_bytes()
+  else:
+    size = struct.calcsize(fmt)
+    with filename.open('rb') as f:
+      start and f.seek(start * size)
+      buffer = f.read((stop - start) * size if stop else None)
   rows = struct.iter_unpack(fmt, buffer)
   cols = tuple(zip(*rows))
   return cols

@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, computed, onMounted } from 'vue'
 import Selector from './Selector.vue'
+import VideoCard from './VideoCard.vue'
 
 const state = reactive({
   status: 'loading...',
@@ -67,6 +68,14 @@ function unselectLeaf(leaf) {
 }
 
 
+function selectKey(key) {
+  // state.leafsSelected.add(leaf);
+}
+
+function unselectKey(kel) {
+  // state.leafsSelected.delete(leaf);
+}
+
 </script>
 
 <template>
@@ -74,6 +83,11 @@ function unselectLeaf(leaf) {
   <Selector :items="flatKeys" @select="selectKey" @unselect="unselectKey" class="selector" title="Metrics" />
 </div>
 <div class="center">
+
+  <div v-for="key in state.keysSelected">
+    <VideoCard path="key" />
+  </div>
+
   <span>{{ state.status }}</span>
 </div>
 <div class="right">
@@ -83,7 +97,7 @@ function unselectLeaf(leaf) {
 </template>
 
 <style scoped>
-.center { flex: 1 1 20rem; overflow: auto; background: #eee; padding: 1rem; }
+.center { flex: 1 1 20rem; overflow: auto; gap: 1em; background: #eee; padding: 1rem; }
 .left, .right { flex: 0 1 20rem; overflow: hidden; display: flex; flex-direction: column; padding: 1rem 0 0 1rem; }
 
 .selector { flex: 1 1 0; overflow: hidden; } /* padding: .5rem 1rem; } */
