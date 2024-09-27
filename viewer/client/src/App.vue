@@ -1,20 +1,41 @@
 <script setup>
 
-import { reactive, computed, onMounted } from 'vue'
+import { reactive, computed, watch, onMounted } from 'vue'
 import Selector from './Selector.vue'
 import VideoCard from './VideoCard.vue'
+import { saveStorage, loadStorage } from './storage.js'
+
+const persist = ['expids', 'exps', 'runs', 'cols', 'selExps', 'selRuns', 'selCols']
 
 const state = reactive({
   status: '',
-  expids: [],
-  exps: {},
-  runs: {},
-  cols: {},
-  selExps: new Set(),
-  selRuns: new Set(),
-  selCols: new Set(),
+
+  // expids: [],
+  // exps: {}
+  // runs: {},
+  // cols: {},
+  // selExps: new Set(),
+  // selRuns: new Set(),
+  // selCols: new Set(),
+
+  expids: loadStorage('expids', []),
+  exps: loadStorage('exps', {}),
+  runs: loadStorage('runs', {}),
+  cols: loadStorage('cols', {}),
+  selExps: loadStorage('selExps', new Set()),
+  selRuns: loadStorage('selRuns', new Set()),
+  selCols: loadStorage('selCols', new Set()),
+
   // selColGroups: [],  # TODO
 })
+
+watch(state.expids, x => saveStorage('expids', x))
+watch(state.exps, x => saveStorage('exps', x))
+watch(state.runs, x => saveStorage('runs', x))
+watch(state.cols, x => saveStorage('cols', x))
+watch(state.selExps, x => saveStorage('selExps', x))
+watch(state.selRuns, x => saveStorage('selRuns', x))
+watch(state.selCols, x => saveStorage('selCols', x))
 
 const expsOptions = computed(() => {
   return [...state.expids].sort()
@@ -37,24 +58,24 @@ const colsOptions = computed(() => {
 })
 
 onMounted(async () => {
-  state.status = 'loading...'
-  state.expids = (await (await fetch('/api/exps')).json())['exps']
-  state.status = ''
+  if (state.expids.length == 0) {
+    state.status = 'loading /exps...'
+    state.expids = (await (await fetch('/api/exps')).json())['exps']
+    state.status = ''
+  }
 })
 
 async function selectExp(expid) {
-  state.status = 'loading...'
+  state.status = `loading exp/${expid}...`
   state.exps[expid] = await (await fetch(`/api/exp/${expid}`)).json()
   state.status = ''
 }
 
 async function selectRun(runid) {
-  state.status = 'loading...'
+  state.status = `loading run/${runid}...`
   state.runs[runid] = await (await fetch(`/api/run/${runid}`)).json()
   state.status = ''
 }
-
-selectExp('e4ffb7_20240918T233314_us_vpt_shmap')  // TODO
 
 </script>
 

@@ -13,7 +13,6 @@ const state = reactive({
 onMounted(async () => {
   state.status = 'loading...'
   state.col = (await (await fetch(`/api/col/${props.col}`)).json())
-  console.log(state.col)
   state.status = ''
 })
 
