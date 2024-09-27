@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, computed } from 'vue'
+import { reactive, computed, watch } from 'vue'
 
 const props = defineProps({
   title: { type: String, default: '' },
@@ -8,9 +8,15 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'unselect'])
 
+const model = defineModel({ type: Set, required: true })
+
 const state = reactive({
-  selected: new Set(),
+  selected: model.value,
   pattern: '',
+})
+
+watch(state.selected, () => {
+  model.value = state.selected
 })
 
 const matches = computed(() => {
