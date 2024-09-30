@@ -64,7 +64,7 @@ h3 { margin: 0; }
 video { max-width: 100%; max-height: 15rem; }
 
 .btnZoom { float: right; }
-.zoom.card { position: absolute; max-height: inherit; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; }
+.zoom.card { position: absolute; max-height: inherit; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }
 .zoom video { max-height: 50vh; }
 
 </style>
