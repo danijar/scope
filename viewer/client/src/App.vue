@@ -104,8 +104,8 @@ async function selectRun(runid) {
   <Selector :items="metsOptions" v-model="state.selMets" class="selector" title="Metrics" />
 </div>
 <div class="center">
+  <span v-if="state.status">{{ state.status }}</span>
   <VideoCard v-for="group in selGroups" :key="group.met" :title="group.met" :cols="group.cols" class="card" />
-  <span>{{ state.status }}</span>
 </div>
 <div class="right">
   <Selector :items="expsOptions" v-model="state.selExps" class="selector" @select="selectExp" title="Experiments" />
@@ -120,6 +120,7 @@ async function selectRun(runid) {
 .selector { flex: 1 1 0; overflow: hidden; } /* padding: .5rem 1rem; } */
 .selector:not(:first-child) { margin-top: 1.5rem; }
 
-.card { flex: 1 1 20rem; max-height: 20rem; }
+/* .card { flex: 1 1 20rem; max-height: 20rem; } */
+.card { flex: 1 1 20rem; }
 
 </style>

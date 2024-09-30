@@ -5,3 +5,37 @@
   width: 100vw;
   display: flex;
 }
+
+.btn {
+  cursor: pointer;
+  margin: -.3rem;
+  padding: .3rem;
+  border-radius: .3rem;
+  transition: background-color .1s;
+}
+.btn:hover { background: #eee; }
+.btn:active { background: #ddd; }
+
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  src: url(@/assets/material-symbols.woff2) format('woff2');
+}
+
+.icon {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}

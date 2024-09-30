@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, computed, onMounted } from 'vue'
+import { reactive, computed, watch, onMounted } from 'vue'
 
 const props = defineProps({
   title: { type: String, default: 'VideoCard' },
@@ -9,6 +9,7 @@ const props = defineProps({
 const state = reactive({
   status: '',
   cols: [],
+  zoom: false,
 })
 
 onMounted(async () => {
@@ -31,10 +32,11 @@ onMounted(async () => {
 </script>
 
 <template>
-<div class="card">
+<div class="card" :class="{ zoom: state.zoom }">
   <div class="header">
+    <span class="btnZoom btn icon" @click="state.zoom = !state.zoom">fullscreen</span>
     <h2>{{ props.title }}</h2>
-    <span>Status: {{ state.status }}</span><br>
+    <span v-if="state.status">{{ state.status }}</span>
   </div>
   <div class="content">
     <div class="col" v-for="col in state.cols">
@@ -50,14 +52,20 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.card { display: flex; flex-direction: column; padding: 1rem 0; background: white; }
+.card { max-height: 20rem; display: flex; flex-direction: column; padding: 1rem 0; background: white; border-radius: .2rem; border: 1px solid #ddd; }
 .header { padding: 0 1rem 1rem; }
 .content { width: 100%; overflow-y: auto; padding: 0 1rem 0; }
+
 
 .col { margin: 1rem 0 0; }
 .col:first-child { margin-top: 0 }
 
 h3 { margin: 0; }
 video { max-width: 100%; max-height: 15rem; }
+
+.btnZoom { float: right; }
+.zoom.card { position: absolute; max-height: inherit; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; }
+.zoom video { max-height: 50vh; }
+
 </style>
 
