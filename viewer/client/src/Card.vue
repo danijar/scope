@@ -38,13 +38,13 @@ function toggleZoom() {
 </template>
 
 <style scoped>
-.card { max-height: 20rem; overflow: hidden; display: flex; flex-direction: column; padding: 1rem 0; background: white; border-radius: .2rem; border: 1px solid #ddd; }
+.card { overflow: hidden; display: flex; flex-direction: column; padding: 1rem 0; background: white; border-radius: .2rem; border: 1px solid #ddd; }
 .header { flex: 0 0 content; padding: 0 1rem 1rem; }
 .content { flex: 1 1 content; width: 100%; overflow-x: hidden; overflow-y: auto; padding: 0 1rem 1rem; }
 
 h3 { margin: 0; }
 
 .btnZoom { float: right; }
-.zoom.card { position: absolute; max-height: inherit; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }
+.zoom.card { position: absolute; height: inherit; aspect-ratio: auto; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }
 
 </style>

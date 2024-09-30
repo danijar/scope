@@ -12,6 +12,7 @@ const persist = ['expids', 'exps', 'runs', 'cols', 'selExps', 'selRuns', 'selMet
 
 const state = reactive({
   status: '',
+  columns: 3,
 
   // expids: [],
   // exps: {}
@@ -108,13 +109,15 @@ async function selectRun(runid) {
     title="Metrics" class="selector" />
 </div>
 <div class="center">
-  <span v-if="state.status">{{ state.status }}</span>
-  <template v-for="group in selGroups" :key="group.met">
-    <CardFloat v-if="group.ext == 'float'"    :name="group.name" :cols="group.cols" class="card" />
-    <CardVideo v-else-if="group.ext == 'mp4'" :name="group.name" :cols="group.cols" class="card" />
-    <CardText  v-else-if="group.ext == 'txt'" :name="group.name" :cols="group.cols" class="card" />
-    <Card v-else :name="group.name" class="card">Unknown metric type: {{ group.ext }}</Card>
-  </template>
+  <div class="cards">
+    <span v-if="state.status">{{ state.status }}</span>
+    <template v-for="group in selGroups" :key="group.met">
+      <CardFloat v-if="group.ext == 'float'"    :name="group.name" :cols="group.cols" class="card" />
+      <CardVideo v-else-if="group.ext == 'mp4'" :name="group.name" :cols="group.cols" class="card" />
+      <CardText  v-else-if="group.ext == 'txt'" :name="group.name" :cols="group.cols" class="card" />
+      <Card v-else :name="group.name" class="card">Unknown metric type: {{ group.ext }}</Card>
+    </template>
+  </div>
 </div>
 <div class="right">
   <Selector
@@ -127,13 +130,14 @@ async function selectRun(runid) {
 </template>
 
 <style scoped>
-.center { flex: 1 1 20rem; overflow: auto; gap: 1em; background: #eee; padding: 1rem; display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: flex-start; }
+
+.center { flex: 1 1 20rem; overflow: auto; background: #eee; }
 .left, .right { flex: 0 1 20rem; overflow: hidden; display: flex; flex-direction: column; padding: 1rem 0 0 1rem; }
 
 .selector { flex: 1 1 0; overflow: hidden; } /* padding: .5rem 1rem; } */
 .selector:not(:first-child) { margin-top: 1.5rem; }
 
-/* .card { flex: 1 1 20rem; max-height: 20rem; } */
-.card { flex: 1 1 20rem; }
+.cards { --columns: v-bind(state.columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; }
+.card { flex: 1 1 20rem; aspect-ratio: 4 / 3; }
 
 </style>
