@@ -2,16 +2,13 @@
 import { reactive, computed, onMounted } from 'vue'
 
 const props = defineProps({
+  title: { type: String, default: 'VideoCard' },
   cols: { type: Array, required: true },
 })
 
 const state = reactive({
   status: '',
   cols: [],
-})
-
-const title = computed(() => {
-  return props.cols[0].substr(props.cols[0].lastIndexOf(':') + 1)
 })
 
 onMounted(async () => {
@@ -36,7 +33,7 @@ onMounted(async () => {
 <template>
 <div class="card">
   <div class="header">
-    <h2>{{ title }}</h2>
+    <h2>{{ props.title }}</h2>
     <span>Status: {{ state.status }}</span><br>
   </div>
   <div class="content">
@@ -53,11 +50,14 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.card { display: flex; flex-direction: column; padding: 1rem; background: white; }
-.header {}
-.content { width: 100%; overflow-y: auto; }
+.card { display: flex; flex-direction: column; padding: 1rem 0; background: white; }
+.header { padding: 0 1rem 1rem; }
+.content { width: 100%; overflow-y: auto; padding: 0 1rem 0; }
 
-h3 {  }
-video { max-width: 100%; max-height: 10rem; }
+.col { margin: 1rem 0 0; }
+.col:first-child { margin-top: 0 }
+
+h3 { margin: 0; }
+video { max-width: 100%; max-height: 15rem; }
 </style>
 

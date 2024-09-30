@@ -8,7 +8,8 @@ function saveStorage(key, value) {
   if (value instanceof Set)
     entry = { type: 'Set', value: [...value] }
 
-  // console.log('saveStorage', key, entry)
+  console.log('saveStorage', key, entry)
+
   localStorage.setItem(key, JSON.stringify(entry))
 }
 

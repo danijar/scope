@@ -5,7 +5,7 @@ import Selector from './Selector.vue'
 import VideoCard from './VideoCard.vue'
 import { saveStorage, loadStorage } from './storage.js'
 
-const persist = ['expids', 'exps', 'runs', 'cols', 'selExps', 'selRuns', 'selCols']
+const persist = ['expids', 'exps', 'runs', 'cols', 'selExps', 'selRuns', 'selMets']
 
 const state = reactive({
   status: '',
@@ -16,7 +16,7 @@ const state = reactive({
   // cols: {},
   // selExps: new Set(),
   // selRuns: new Set(),
-  // selCols: new Set(),
+  // selMets: new Set(),
 
   expids: loadStorage('expids', []),
   exps: loadStorage('exps', {}),
@@ -24,9 +24,7 @@ const state = reactive({
   cols: loadStorage('cols', {}),
   selExps: loadStorage('selExps', new Set()),
   selRuns: loadStorage('selRuns', new Set()),
-  selCols: loadStorage('selCols', new Set()),
-
-  // selColGroups: [],  # TODO
+  selMets: loadStorage('selMets', new Set()),
 })
 
 watch(state.expids, x => saveStorage('expids', x))
@@ -35,7 +33,11 @@ watch(state.runs, x => saveStorage('runs', x))
 watch(state.cols, x => saveStorage('cols', x))
 watch(state.selExps, x => saveStorage('selExps', x))
 watch(state.selRuns, x => saveStorage('selRuns', x))
-watch(state.selCols, x => saveStorage('selCols', x))
+watch(state.selMets, x => saveStorage('selMets', x))
+
+function colToMet(col) {
+  return col.substr(col.lastIndexOf(':') + 1)
+}
 
 const expsOptions = computed(() => {
   return [...state.expids].sort()
@@ -49,18 +51,36 @@ const runsOptions = computed(() => {
   return options
 })
 
-const colsOptions = computed(() => {
-  let options = []
+const metsOptions = computed(() => {
+  const options = new Set()
   for (const run of state.selRuns)
     if (run in state.runs)
-      options = options.concat(state.runs[run]['cols'])
-  return options
+      for (const col of state.runs[run]['cols'])
+        options.add(colToMet(col))
+  return [...options].sort()
+})
+
+const selGroups = computed(() => {
+  const groups = []
+  for (const met of state.selMets) {
+    const cols = []
+    for (const run of state.selRuns)
+      if (run in state.runs)
+        for (const col of state.runs[run]['cols'])
+          if (colToMet(col) === met)
+            cols.push(col)
+    groups.push({ met: met, cols: cols })
+  }
+  console.log('GROUPS', groups)
+  return groups
 })
 
 onMounted(async () => {
   if (state.expids.length == 0) {
     state.status = 'loading /exps...'
     state.expids = (await (await fetch('/api/exps')).json())['exps']
+    console.log(state.expids)
+    saveStorage('expids', state.expids)  // TODO: fix watcher
     state.status = ''
   }
 })
@@ -81,10 +101,10 @@ async function selectRun(runid) {
 
 <template>
 <div class="left">
-  <Selector :items="colsOptions" v-model="state.selCols" class="selector" title="Metrics" />
+  <Selector :items="metsOptions" v-model="state.selMets" class="selector" title="Metrics" />
 </div>
 <div class="center">
-  <VideoCard v-for="col in state.selCols" :cols="[col, col]" class="card" />
+  <VideoCard v-for="group in selGroups" :key="group.met" :title="group.met" :cols="group.cols" class="card" />
   <span>{{ state.status }}</span>
 </div>
 <div class="right">
