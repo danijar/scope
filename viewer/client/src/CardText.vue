@@ -31,7 +31,6 @@ onMounted(async () => {
   const requests2 = state.cols.map(col => fetch(col.url))
   const results2 = await Promise.all(requests2.map(async x => (await x).json()))
   state.cols.map(function(col, i) {
-    console.log(results2[i]['text'])
     col.text = results2[i]['text'].replace(/\n/g, '<br>')
   })
   state.status = ''
