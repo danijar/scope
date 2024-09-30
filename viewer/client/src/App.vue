@@ -84,7 +84,7 @@ async function selectRun(runid) {
   <Selector :items="colsOptions" v-model="state.selCols" class="selector" title="Metrics" />
 </div>
 <div class="center">
-  <VideoCard v-for="col in state.selCols" :col="col" class="card" />
+  <VideoCard v-for="col in state.selCols" :cols="[col, col]" class="card" />
   <span>{{ state.status }}</span>
 </div>
 <div class="right">

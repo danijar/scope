@@ -2,42 +2,62 @@
 import { reactive, computed, onMounted } from 'vue'
 
 const props = defineProps({
-  col: { type: String, required: true },
+  cols: { type: Array, required: true },
 })
 
 const state = reactive({
   status: '',
-  col: { steps: [], values: [] },
+  cols: [],
+})
+
+const title = computed(() => {
+  return props.cols[0].substr(props.cols[0].lastIndexOf(':') + 1)
 })
 
 onMounted(async () => {
   state.status = 'loading...'
-  state.col = (await (await fetch(`/api/col/${props.col}`)).json())
+  const requests = props.cols.map(col => fetch(`/api/col/${col}`))
+  const results = await Promise.all(requests.map(async x => (await x).json()))
+  state.cols = props.cols.map(function(col, i) {
+    const result = results[i]
+    const lastValue = result.values[result.values.length - 1]
+    return {
+      run: col.substr(0, col.lastIndexOf(':', col.lastIndexOf(':') - 1)),
+      url: `/api/file/${lastValue}`,
+      steps: result.steps,
+      values: result.values,
+    }
+  })
   state.status = ''
-})
-
-const url = computed(() => {
-  const value = state.col.values[state.col.values.length - 1]
-  return `/api/file/${value}`
 })
 
 </script>
 
 <template>
 <div class="card">
-  <h3>{{ props.col }}</h3>
-  <span>Status: {{ state.status }}</span><br>
-  <span>Count: {{ state.col.steps.length }}</span><br>
-  <span>Step: {{ state.col.steps[state.col.steps.length - 1] }}</span><br>
-  <video controls loop v-if="state.col.steps.length">
-    <source :src="url" type="video/mp4">
-  </video>
+  <div class="header">
+    <h2>{{ title }}</h2>
+    <span>Status: {{ state.status }}</span><br>
+  </div>
+  <div class="content">
+    <div class="col" v-for="col in state.cols">
+      <h3> {{ col.run }}</h3>
+      <span>Count: {{ col.steps.length }}</span><br>
+      <span>Step: {{ col.steps[col.steps.length - 1] }}</span><br>
+      <video controls loop v-if="col.steps.length">
+        <source :src="col.url" type="video/mp4">
+      </video>
+    </div>
+  </div>
 </div>
 </template>
 
 <style scoped>
-.card { overflow: hidden; padding: 1rem; background: white; }
+.card { display: flex; flex-direction: column; padding: 1rem; background: white; }
+.header {}
+.content { width: 100%; overflow-y: auto; }
+
 h3 {  }
-video { max-width: 100%; max-height: 100%; }
+video { max-width: 100%; max-height: 10rem; }
 </style>
 
