@@ -58,7 +58,7 @@ def get_col(colid: str):
   if ext == 'float':
     steps, values = scope.table_read(path, '>qd')
     return {'steps': steps, 'values': values}
-  elif ext == 'mp4':
+  elif ext in ('mp4', 'txt'):
     steps, idents = scope.table_read(path / 'index', 'q8s')
     filenames = [f'{s:020}-{x.hex()}.{ext}' for s, x in zip(steps, idents)]
     values = [f'{colid}:{x}' for x in filenames]
@@ -69,23 +69,30 @@ def get_col(colid: str):
 
 @app.get('/file/{fileid}')
 def get_file(fileid: str):
-  assert fileid.endswith('.mp4'), fileid
+  ext = fileid.rsplit('.', 1)[-1]
+  assert ext in ('mp4', 'txt'), fileid
   path = root / fileid.replace(':', '/')
-  fp = path.open('rb')
-  fp.seek(0)
-  total = fp.blob.size
-  def iterfile():
-    remaining = total
-    while remaining > 0:
-      chunk = fp.read(min(128 * 1024, remaining))
-      remaining -= len(chunk)
-      yield chunk
-    fp.close()
-  headers = {
-      'Content-Disposition': f'attachment; filename={fileid}.mp4',
-  }
-  return fastapi.responses.StreamingResponse(
-      iterfile(), media_type='video/mp4', headers=headers)
+
+  if ext == 'mp4':
+    fp = path.open('rb')
+    fp.seek(0)
+    total = fp.blob.size
+    def iterfile():
+      remaining = total
+      while remaining > 0:
+        chunk = fp.read(min(128 * 1024, remaining))
+        remaining -= len(chunk)
+        yield chunk
+      fp.close()
+    headers = {
+        'Content-Disposition': f'attachment; filename={fileid}.mp4',
+    }
+    return fastapi.responses.StreamingResponse(
+        iterfile(), media_type='video/mp4', headers=headers)
+
+  if ext == 'txt':
+    text = path.read_text()
+    return {'text': text}
 
 
 def find_runs(folder):

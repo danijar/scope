@@ -1,9 +1,12 @@
 <script setup>
 
 import { reactive, computed, watch, onMounted } from 'vue'
-import Selector from './Selector.vue'
-import VideoCard from './VideoCard.vue'
 import { saveStorage, loadStorage } from './storage.js'
+import Selector from './Selector.vue'
+import Card from './Card.vue'
+import CardFloat from './CardFloat.vue'
+import CardVideo from './CardVideo.vue'
+import CardText from './CardText.vue'
 
 const persist = ['expids', 'exps', 'runs', 'cols', 'selExps', 'selRuns', 'selMets']
 
@@ -64,14 +67,14 @@ const selGroups = computed(() => {
   const groups = []
   for (const met of state.selMets) {
     const cols = []
+    const ext = met.substr(met.lastIndexOf('.') + 1)
     for (const run of state.selRuns)
       if (run in state.runs)
         for (const col of state.runs[run]['cols'])
           if (colToMet(col) === met)
             cols.push(col)
-    groups.push({ met: met, cols: cols })
+    groups.push({ name: met, ext, ext, cols: cols })
   }
-  console.log('GROUPS', groups)
   return groups
 })
 
@@ -79,7 +82,6 @@ onMounted(async () => {
   if (state.expids.length == 0) {
     state.status = 'loading /exps...'
     state.expids = (await (await fetch('/api/exps')).json())['exps']
-    console.log(state.expids)
     saveStorage('expids', state.expids)  // TODO: fix watcher
     state.status = ''
   }
@@ -101,15 +103,26 @@ async function selectRun(runid) {
 
 <template>
 <div class="left">
-  <Selector :items="metsOptions" v-model="state.selMets" class="selector" title="Metrics" />
+  <Selector
+    :items="metsOptions" v-model="state.selMets"
+    title="Metrics" class="selector" />
 </div>
 <div class="center">
   <span v-if="state.status">{{ state.status }}</span>
-  <VideoCard v-for="group in selGroups" :key="group.met" :title="group.met" :cols="group.cols" class="card" />
+  <template v-for="group in selGroups" :key="group.met">
+    <CardFloat v-if="group.ext == 'float'"    :name="group.name" :cols="group.cols" class="card" />
+    <CardVideo v-else-if="group.ext == 'mp4'" :name="group.name" :cols="group.cols" class="card" />
+    <CardText  v-else-if="group.ext == 'txt'" :name="group.name" :cols="group.cols" class="card" />
+    <Card v-else :name="group.name" class="card">Unknown metric type: {{ group.ext }}</Card>
+  </template>
 </div>
 <div class="right">
-  <Selector :items="expsOptions" v-model="state.selExps" class="selector" @select="selectExp" title="Experiments" />
-  <Selector :items="runsOptions" v-model="state.selRuns" class="selector" @select="selectRun" title="Runs" />
+  <Selector
+    :items="expsOptions" v-model="state.selExps" @select="selectExp"
+    title="Experiments" class="selector" />
+  <Selector
+    :items="runsOptions" v-model="state.selRuns" @select="selectRun"
+    title="Runs" class="selector" />
 </div>
 </template>
 
