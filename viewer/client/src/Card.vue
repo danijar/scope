@@ -2,7 +2,7 @@
 
 import { reactive, computed, watch, onMounted } from 'vue'
 
-const emit = defineEmits(['resize'])
+// const emit = defineEmits(['resize'])
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -15,7 +15,7 @@ const state = reactive({
 
 function toggleZoom() {
   state.zoom = !state.zoom
-  emit('resize')
+  // emit('resize')
 }
 
 // watch(state.zoom, (zoom) => {
@@ -25,7 +25,9 @@ function toggleZoom() {
 </script>
 
 <template>
-<div class="card" :class="{ zoom: state.zoom }">
+<div
+  class="card" :class="{ zoom: state.zoom }"
+  tabindex="0" @keydown.f.prevent="toggleZoom" @keydown.esc.prevent="state.zoom = false">
   <div class="header">
     <span class="btnZoom btn icon" @click="toggleZoom">fullscreen</span>
     <h2>{{ props.name }}</h2>
