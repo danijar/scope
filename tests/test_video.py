@@ -14,13 +14,17 @@ class TestVideo:
     writer.add(0, {'foo': vid1})
     writer.add(5, {'foo': vid2})
     writer.flush()
-    assert {x.name for x in logdir.glob('*')} == {'foo.mp4'}
-    assert (logdir / 'foo.mp4' / 'index').stat().st_size == (8 + 8) * 2
-    assert len(list((logdir / 'foo.mp4').glob('*'))) == 1 + 2
+    names = {x.name for x in logdir.glob('*')}
+    assert len(names) == 1
+    name = list(names)[0]
+    assert name in ('foo.mp4', 'foo.webm')
+    assert (logdir / name / 'index').stat().st_size == (8 + 8) * 2
+    assert len(list((logdir / name).glob('*'))) == 1 + 2
     reader = scope.Reader(logdir)
     assert reader.keys() == ('foo',)
     assert reader.length('foo') == 2
     steps, filenames = reader['foo']
-    values = [reader.load('foo', x) for x in filenames]
     assert (steps == np.array([0, 5])).all()
-    assert np.allclose(values, [vid1, vid2], rtol=0.1)
+    values = [reader.load('foo', x) for x in filenames]
+    assert all(x.dtype == np.uint8 for x in values)
+    assert np.allclose(values, [vid1, vid2], rtol=0.1, atol=3)
