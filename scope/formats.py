@@ -2,7 +2,6 @@ import io
 import struct
 import time
 
-import av
 import numpy as np
 import PIL.Image
 
@@ -127,6 +126,7 @@ class Video:
     return files_read(path)
 
   def encode(self, value):
+    import av
     if value.shape[-1] == 1:
       value = value.repeat(3, -1)
     T, H, W, _ = value.shape
@@ -145,6 +145,7 @@ class Video:
     return fp.getvalue()
 
   def decode(self, buffer):
+    import av
     container = av.open(io.BytesIO(buffer))
     value = []
     for frame in container.decode(video=0):
