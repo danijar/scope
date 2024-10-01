@@ -1,43 +1,44 @@
 import re
 import pathlib
 
-import numpy as np
+from . import formats
 
-from . import columns
+
+FORMATS = [
+    formats.Text(),
+    formats.Float(),
+    formats.Image(),
+    formats.Video(),
+]
 
 
 class Reader:
 
-  def __init__(self, logdir):
+  def __init__(self, logdir, formats=FORMATS):
     if isinstance(logdir, str):
       logdir = pathlib.Path(logdir)
-    self.coltypes = {
-        'float': columns.FloatColumn,
-        'png': columns.ImageColumn,
-        'mp4': columns.VideoColumn,
-    }
-    self.columns = {}
+    self.logdir = logdir
+    self.fmts = {x.extension: x for x in formats}
+    self.cols = {}
     for child in sorted(logdir.glob('*')):
-      name, ext = child.name.rsplit('.', 1)
-      key = name.replace('-', '/')
+      basename, ext = child.name.rsplit('.', 1)
+      key = basename.replace('-', '/')
       assert re.match(r'[a-z0-9_]+(/[a-z0-9_]+)?', key), key
-      self.columns[key] = self.coltypes[ext](logdir, key)
+      self.cols[key] = (child.name, self.fmts[ext])
 
   def keys(self):
-    return tuple(self.columns.keys())
+    return tuple(self.cols.keys())
+
+  def __getitem__(self, key):
+    name, fmt = self.cols[key]
+    return fmt.read(self.logdir / name)
 
   def length(self, key):
-    return self.columns[key].length()
+    name, fmt = self.cols[key]
+    return fmt.length(self.logdir / name)
 
-  def __getitem__(self, index):
-    if isinstance(index, str):
-      key, start, stop = index, -np.inf, +np.inf
-    else:
-      key, pos = index
-      if isinstance(pos, int):
-        start, stop = pos, pos + 1
-      else:
-        assert pos.step is None
-        start = -np.inf if pos.start is None else pos.start
-        stop = +np.inf if pos.stop is None else pos.stop
-    return self.columns[key].read(start, stop)
+  def load(self, key, filename):
+    _, fmt = self.cols[key]
+    buffer = (self.logdir / filename).read_bytes()
+    value = fmt.decode(buffer)
+    return value

@@ -22,21 +22,6 @@ class TestFloat:
     assert equal(reader['foo'], ([0, 5], [12, 42]), (np.int64, np.float64))
     assert equal(reader['bar'], ([5], [np.pi]), (np.int64, np.float64))
 
-  def test_slicing(self, tmpdir):
-    logdir = pathlib.Path(tmpdir)
-    writer = scope.Writer(logdir, workers=0)
-    writer.add(0, {'foo': 12})
-    writer.add(5, {'foo': 42})
-    writer.flush()
-    reader = scope.Reader(logdir)
-    assert equal(reader['foo', 0], ([0], [12]))
-    assert equal(reader['foo', :2], ([0], [12]))
-    assert equal(reader['foo', :5], ([0], [12]))
-    assert equal(reader['foo', :6], ([0, 5], [12, 42]))
-    assert equal(reader['foo', 1:6], ([5], [42]))
-    assert equal(reader['foo', :-1], ([], []))
-    assert equal(reader['foo', 7:], ([], []))
-
   def test_workers(self, tmpdir):
     logdir = pathlib.Path(tmpdir)
     writer = scope.Writer(logdir, workers=8)
@@ -61,6 +46,21 @@ class TestFloat:
     assert reader.keys() == ('foo/bar',)
     assert reader.length('foo/bar') == 1
     assert equal(reader['foo/bar'], ([0], [12]), (np.int64, np.float64))
+
+  # def test_slicing(self, tmpdir):
+  #   logdir = pathlib.Path(tmpdir)
+  #   writer = scope.Writer(logdir, workers=0)
+  #   writer.add(0, {'foo': 12})
+  #   writer.add(5, {'foo': 42})
+  #   writer.flush()
+  #   reader = scope.Reader(logdir)
+  #   assert equal(reader['foo', 0], ([0], [12]))
+  #   assert equal(reader['foo', :2], ([0], [12]))
+  #   assert equal(reader['foo', :5], ([0], [12]))
+  #   assert equal(reader['foo', :6], ([0, 5], [12, 42]))
+  #   assert equal(reader['foo', 1:6], ([5], [42]))
+  #   assert equal(reader['foo', :-1], ([], []))
+  #   assert equal(reader['foo', 7:], ([], []))
 
 
 def equal(actuals, references, dtypes=None):

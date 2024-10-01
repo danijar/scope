@@ -20,6 +20,7 @@ class TestVideo:
     reader = scope.Reader(logdir)
     assert reader.keys() == ('foo',)
     assert reader.length('foo') == 2
-    steps, values = reader['foo']
+    steps, filenames = reader['foo']
+    values = [reader.load('foo', x) for x in filenames]
     assert (steps == np.array([0, 5])).all()
     assert np.allclose(values, [vid1, vid2], rtol=0.1)

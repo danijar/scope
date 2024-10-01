@@ -1,12 +1,9 @@
-__version__ = '0.2.3'
+__version__ = '0.3.0'
 
 from .reader import Reader
 from .writer import Writer
 
-from .columns import FloatColumn
-from .columns import ImageColumn
-from .columns import VideoColumn
+from .formats import table_read
+from .formats import table_append
 
-from .columns import table_length
-from .columns import table_read
-from .columns import table_write
+from . import formats
