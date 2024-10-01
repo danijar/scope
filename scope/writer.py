@@ -28,7 +28,8 @@ class Column:
 
 class Writer:
 
-  def __init__(self, logdir, fps=20, workers=8, formats=FORMATS):
+  def __init__(self, logdir, fps=20, workers=8, formats=None):
+    formats = formats or FORMATS
     if isinstance(logdir, str):
       logdir = pathlib.Path(logdir)
     self.logdir = logdir

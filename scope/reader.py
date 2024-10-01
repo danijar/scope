@@ -14,7 +14,8 @@ FORMATS = [
 
 class Reader:
 
-  def __init__(self, logdir, formats=FORMATS):
+  def __init__(self, logdir, formats=None):
+    formats = formats or FORMATS
     if isinstance(logdir, str):
       logdir = pathlib.Path(logdir)
     self.logdir = logdir
