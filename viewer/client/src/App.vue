@@ -23,6 +23,7 @@ const state = reactive({
   // selRuns: new Set(),
   // selMets: new Set(),
 
+  columns: loadStorage('columns', 3),
   expids: loadStorage('expids', []),
   exps: loadStorage('exps', {}),
   runs: loadStorage('runs', {}),
@@ -39,6 +40,7 @@ watch(state.cols, x => saveStorage('cols', x))
 watch(state.selExps, x => saveStorage('selExps', x))
 watch(state.selRuns, x => saveStorage('selRuns', x))
 watch(state.selMets, x => saveStorage('selMets', x))
+watch(state.columns, x => saveStorage('columns', x))
 
 function colToMet(col) {
   return col.substr(col.lastIndexOf(':') + 1)
@@ -101,6 +103,11 @@ async function selectRun(runid) {
   state.status = ''
 }
 
+function toggleLayout() {
+  state.columns = state.columns % 5 + 1
+  saveStorage('columns', state.columns)
+}
+
 </script>
 
 <template>
@@ -109,7 +116,7 @@ async function selectRun(runid) {
     <h1>Scope</h1>
     <span class="fill"></span>
     <span class="btn icon">refresh</span>
-    <span class="btn icon">settings</span>
+    <span class="btn icon" @click="toggleLayout">settings</span>
   </div>
   <div class="content layoutRow">
     <div class="left layoutCol">
