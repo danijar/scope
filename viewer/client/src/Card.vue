@@ -26,7 +26,7 @@ function toggleZoom() {
 
 <template>
 <div
-  class="card" :class="{ zoom: state.zoom }"
+  class="card layoutCol" :class="{ zoom: state.zoom }"
   tabindex="0" @keydown.f.prevent="toggleZoom" @keydown.esc.prevent="state.zoom = false">
   <div class="header">
     <span class="btnZoom btn icon" @click="toggleZoom">fullscreen</span>
@@ -40,13 +40,13 @@ function toggleZoom() {
 </template>
 
 <style scoped>
-.card { overflow: hidden; display: flex; flex-direction: column; padding: 1rem 0; background: white; border-radius: .2rem; border: 1px solid #ddd; }
+.card { padding: 1rem 0; background: white; border-radius: .2rem; }
 .header { flex: 0 0 content; padding: 0 1rem 1rem; }
 .content { flex: 1 1 content; width: 100%; overflow-x: hidden; overflow-y: auto; padding: 0 1rem 1rem; }
 
 h3 { margin: 0; }
 
-.btnZoom { float: right; }
+.btnZoom { float: right; margin: -.3rem; }
 .zoom.card { position: absolute; height: inherit; aspect-ratio: auto; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }
 
 </style>

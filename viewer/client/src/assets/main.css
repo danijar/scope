@@ -1,21 +1,5 @@
 @import './base.css';
 
-#app {
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-}
-
-.btn {
-  cursor: pointer;
-  margin: -.3rem;
-  padding: .3rem;
-  border-radius: .3rem;
-  transition: background-color .1s;
-}
-.btn:hover { background: #eee; }
-.btn:active { background: #ddd; }
-
 @font-face {
   font-family: 'Material Symbols Outlined';
   font-style: normal;
@@ -38,4 +22,21 @@
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
   user-select: none;
+  vertical-align: middle;
 }
+
+.btn {
+  display: inline-block;
+  cursor: pointer;
+  padding: .3rem;
+  border-radius: .3rem;
+  transition: background-color .1s;
+  color: #444;
+}
+.btn:hover { background: #eee; }
+.btn:active { background: #ddd; }
+.btn + .btn { margin-left: .3rem; }
+
+.layoutCol { display: flex; overflow: hidden; flex-direction: column; }
+.layoutRow { display: flex; overflow: hidden; flex-direction: row; }
+.fill { flex: 1 1; }

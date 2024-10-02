@@ -12,7 +12,8 @@ const persist = ['expids', 'exps', 'runs', 'cols', 'selExps', 'selRuns', 'selMet
 
 const state = reactive({
   status: '',
-  columns: 3,
+  // columns: 3,
+  columns: 2,
 
   // expids: [],
   // exps: {}
@@ -103,41 +104,56 @@ async function selectRun(runid) {
 </script>
 
 <template>
-<div class="left">
-  <Selector
-    :items="metsOptions" v-model="state.selMets"
-    title="Metrics" class="selector" />
-</div>
-<div class="center">
-  <div class="cards">
-    <span v-if="state.status">{{ state.status }}</span>
-    <template v-for="group in selGroups" :key="group.met">
-      <CardFloat v-if="group.ext == 'float'"    :name="group.name" :cols="group.cols" class="card" />
-      <CardVideo v-else-if="group.ext == 'mp4'" :name="group.name" :cols="group.cols" class="card" />
-      <CardText  v-else-if="group.ext == 'txt'" :name="group.name" :cols="group.cols" class="card" />
-      <Card v-else :name="group.name" class="card">Unknown metric type: {{ group.ext }}</Card>
-    </template>
+<div class="app layoutCol">
+  <div class="header layoutRow">
+    <h1>Scope</h1>
+    <span class="fill"></span>
+    <span class="btn icon">refresh</span>
+    <span class="btn icon">settings</span>
   </div>
-</div>
-<div class="right">
-  <Selector
-    :items="expsOptions" v-model="state.selExps" @select="selectExp"
-    title="Experiments" class="selector" />
-  <Selector
-    :items="runsOptions" v-model="state.selRuns" @select="selectRun"
-    title="Runs" class="selector" />
+  <div class="content layoutRow">
+    <div class="left layoutCol">
+      <Selector
+        :items="metsOptions" v-model="state.selMets"
+        title="Metrics" class="selector" />
+    </div>
+    <div class="center">
+      <div class="cards">
+        <span v-if="state.status">{{ state.status }}</span>
+        <template v-for="group in selGroups" :key="group.met">
+          <CardFloat v-if="group.ext == 'float'"    :name="group.name" :cols="group.cols" class="card" />
+          <CardVideo v-else-if="group.ext == 'mp4'" :name="group.name" :cols="group.cols" class="card" />
+          <CardText  v-else-if="group.ext == 'txt'" :name="group.name" :cols="group.cols" class="card" />
+          <Card v-else :name="group.name" class="card">Unknown metric type: {{ group.ext }}</Card>
+        </template>
+      </div>
+    </div>
+    <div class="right layoutCol">
+      <Selector
+        :items="expsOptions" v-model="state.selExps" @select="selectExp"
+        title="Experiments" class="selector" />
+      <Selector
+        :items="runsOptions" v-model="state.selRuns" @select="selectRun"
+        title="Runs" class="selector" />
+    </div>
+  </div>
 </div>
 </template>
 
 <style scoped>
 
-.center { flex: 1 1 20rem; overflow: auto; background: #eee; }
-.left, .right { flex: 0 1 20rem; overflow: hidden; display: flex; flex-direction: column; padding: 1rem 0 0 1rem; }
+.app { height: 100vh; width: 100vw; }
+.header { flex: 0 0 content; align-items: center; padding: 1rem; border-bottom: 2px solid #eee; }
+.content { flex: 1 1; }
 
-.selector { flex: 1 1 0; overflow: hidden; } /* padding: .5rem 1rem; } */
-.selector:not(:first-child) { margin-top: 1.5rem; }
+.center { flex: 1 1 20rem; overflow: auto; background: #eee; }
+.left, .right { flex: 0 1 20rem; }
+
+.header h1 { font-size: 1.8rem; font-weight: 500; color: #000; padding-left: 1.3em; line-height: 1em; background: url(/logo.png) no-repeat; background-size: contain; user-select: none; }
+
+.selector { flex: 1 1 0; overflow: hidden; padding: 1rem 0 0 1rem; }
 
 .cards { --columns: v-bind(state.columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; }
-.card { flex: 1 1 20rem; aspect-ratio: 4 / 3; }
+.card { flex: 1 1 20rem; aspect-ratio: 4 / 3; border: 1px solid #ddd; }
 
 </style>
