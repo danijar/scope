@@ -42,7 +42,7 @@ function toggleZoom() {
 <style scoped>
 .card { padding: 1rem 0; background: white; border-radius: .2rem; }
 .header { flex: 0 0 content; padding: 0 1rem 1rem; }
-.content { flex: 1 1 content; width: 100%; overflow-x: hidden; overflow-y: auto; padding: 0 1rem 1rem; }
+.content { flex: 1 1 content; width: 100%; overflow-x: hidden; overflow-y: auto; padding: 0 1rem; }
 
 h3 { margin: 0; }
 

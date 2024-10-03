@@ -22,21 +22,17 @@ const canvas = useTemplateRef('canvas')
 
 const chart = [null]
 
-// TODO: Move into helper file
-function binarySearchAttrX(array, target) {
-  let lo = 0
-  let hi = array.length - 1
-  while (lo <= hi) {
-    const mid = Math.floor((lo + hi) / 2)
-    const cur = array[mid].x // NOTE
-    if (target > cur)
-      lo = mid + 1
-    if (target < cur)
-      hi = mid - 1
-  }
-  // TODO: actually return nearest point
-  return Math.max(0, Math.min(lo, array.length - 1))
-}
+const colors = [
+  '#e41a1c',
+  '#377eb8',
+  '#4daf4a',
+  '#984ea3',
+  '#ff7f00',
+  '#ffd92e',
+  '#a65628',
+  '#f781bf',
+  '#999999',
+]
 
 onMounted(async () => {
 
@@ -48,6 +44,7 @@ onMounted(async () => {
       responsive: true,
       maintainAspectRatio: false,
       resizeDelay: 50,
+      pointHoverRadius: 0,
       scales: {
         x: { type: 'linear', position: 'bottom', maxRotation: 0 },
         y: { type: 'linear', position: 'left', maxRotation: 0 }
@@ -64,22 +61,7 @@ onMounted(async () => {
         // TODO: add delay to compute this less frequently
         const canvasPos = chartjsHelpers.getRelativePosition(event, chart)
         const dataX = chart.scales.x.getValueForPixel(canvasPos.x)
-        const dataY = chart.scales.y.getValueForPixel(canvasPos.y)
-        // console.log(dataX, dataY)
-
-        // chart.data.datasets.map(dataset => {
-        //   console.log(binarySearchAttrX(dataset.data, dataX))
-        // })
-
-        state.legend = chart.data.datasets.map(dataset => {
-          const index = binarySearchAttrX(dataset.data, dataX);
-          return {
-            run: dataset.label,
-            color: dataset.borderColor,
-            step: dataset.data[index].x,
-            value: dataset.data[index].y,
-          }
-        })
+        updateLegend(dataX)
 
       }
     }],
@@ -98,12 +80,6 @@ onMounted(async () => {
     }
   })
 
-  const colors = [
-    '#ff0000',
-    '#00ff00',
-    '#0000ff',
-  ]
-
   const datasets = []
   let i = 0;
   for (const col of state.cols) {
@@ -121,9 +97,49 @@ onMounted(async () => {
 
   chart[0].data.datasets = datasets
   chart[0].update()
+  updateLegend(0)
 
   state.status = ''
 })
+
+function updateLegend(nearestStep) {
+  state.legend = chart[0].data.datasets.map(dataset => {
+    const index = bisectNearestX(dataset.data, nearestStep)
+    const value = dataset.data[index].y
+
+    let formattedValue
+    if (0.01 <= Math.abs(value) && Math.abs(value) <= 10000)
+      formattedValue = value.toFixed(3)
+    else
+      formattedValue = value.toExponential(2)
+
+    return {
+      run: dataset.label,
+      color: dataset.borderColor,
+      step: dataset.data[index].x,
+      value: value,
+      formattedValue: formattedValue,
+    }
+  })
+}
+
+function bisectNearestX(array, target) {
+  let lo = 0
+  let hi = array.length - 1
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2)
+    const val = array[mid].x
+    if (target > val)
+      lo = mid + 1
+    else if (target < val)
+      hi = mid - 1
+    else
+      return mid
+  }
+  lo = Math.max(0, Math.min(lo, array.length - 1))
+  hi = Math.max(0, Math.min(hi, array.length - 1))
+  return (array[lo] - target) < (target - array[hi]) ? lo : hi
+}
 
 </script>
 
@@ -136,20 +152,16 @@ onMounted(async () => {
   </div>
 
   <div class="legend">
-    <table>
-      <tr class="entry" v-for="entry in state.legend">
-        <td class="handle" :style="{ background: entry.color }"></td>
-        <td>{{ entry.run }}</td>
-        <td>{{ entry.step }}</td>
-        <td>{{ entry.value }}</td>
-      </tr>
-    </table>
+    <!-- <div class="entries"> -->
+    <!-- <div class="entry head"><div></div><div>Run</div><div>Step</div><div>Value</div></div> -->
+    <div class="entry" v-for="entry in state.legend">
+      <div :style="{ background: entry.color }"></div>
+      <div>{{ entry.run }}</div>
+      <div>{{ entry.step }}</div>
+      <div>{{ entry.formattedValue }}</div>
+    </div>
+    <!-- </div> -->
   </div>
-
-  <!-- <div v-for="col in state.cols" class="col"> -->
-  <!--   <h3> {{ col.run }}</h3> -->
-  <!--   <p>{{ col.values }}</p> -->
-  <!-- </div> -->
 
 </div>
 </Card>
@@ -161,8 +173,13 @@ onMounted(async () => {
 
 .chart { flex: 1 1 100%; position: relative; overflow: hidden; }
 
-.legend { flex: 0 1 content; width: 100%; }
-table { width: 100%; }
+.legend { flex: 0 0 content; max-height: 40%; width: 100%; display: flex; flex-direction: column; overflow: auto; margin: 1.5rem 0 0; font-family: monospace; }
+.entry { width: 100%; display: flex; align-items: center; margin-bottom: .5rem; }
+
+.entry div:nth-child(1) { flex: 0 0 1rem; margin-right: .5rem; width: 1rem; height: 100%; min-height: 1rem; border-radius: .2rem; }
+.entry div:nth-child(2) { flex: 1 1 content; margin-right: .5rem; word-break: break-all; line-height: 0.95; font-size: 0.8rem; }
+.entry div:nth-child(3) { flex: 0 0 5rem; margin-right: .5rem; text-align: right; }
+.entry div:nth-child(4) { flex: 0 0 5rem; padding-right: .5rem; text-align: right; }
 
 </style>
 
