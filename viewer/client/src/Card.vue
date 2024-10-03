@@ -29,7 +29,10 @@ function toggleZoom() {
   class="card layoutCol" :class="{ zoom: state.zoom }"
   tabindex="0" @keydown.f.prevent="toggleZoom" @keydown.esc.prevent="state.zoom = false">
   <div class="header">
-    <span class="btnZoom btn icon" @click="toggleZoom">fullscreen</span>
+    <div class="buttons layoutRow">
+      <slot name="buttons"></slot>
+      <span class="btn icon" @click="toggleZoom">fullscreen</span>
+    </div>
     <h2>{{ props.name }}</h2>
     <span v-if="props.status">{{ props.status }}</span>
   </div>
@@ -46,7 +49,8 @@ function toggleZoom() {
 
 h3 { margin: 0; }
 
-.btnZoom { float: right; margin: -.3rem; }
+.buttons { float: right; margin: -.3rem; }
+
 .zoom.card { position: absolute; height: inherit; aspect-ratio: auto; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }
 
 </style>

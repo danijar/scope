@@ -5,7 +5,7 @@ import Card from './Card.vue'
 import * as chartjs from 'chart.js'
 import * as chartjsHelpers from "chart.js/helpers";
 
-chartjs.Chart.register(chartjs.LineController, chartjs.ScatterController, chartjs.LineElement, chartjs.PointElement, chartjs.LinearScale, chartjs.Title, chartjs.CategoryScale, chartjs.Tooltip)
+chartjs.Chart.register(chartjs.LineController, chartjs.ScatterController, chartjs.LineElement, chartjs.PointElement, chartjs.LinearScale, chartjs.LogarithmicScale, chartjs.Title, chartjs.CategoryScale, chartjs.Tooltip)
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -141,29 +141,45 @@ function bisectNearestX(array, target) {
   return (array[lo] - target) < (target - array[hi]) ? lo : hi
 }
 
+function toggleLogScaleX() {
+  if (chart[0].options.scales.y.type == 'linear')
+    chart[0].options.scales.y.type = 'logarithmic'
+  else
+    chart[0].options.scales.y.type = 'linear'
+  chart[0].update()
+}
+
 </script>
 
 <template>
 <Card :name="props.name" :status="state.status">
-<div class="content layoutCol">
 
-  <div class="chart">
-    <canvas ref="canvas"></canvas>
-  </div>
+<template #buttons>
+  <span class="btn icon" @click="toggleLogScaleX">query_stats</span>
+</template>
 
-  <div class="legend">
-    <!-- <div class="entries"> -->
-    <!-- <div class="entry head"><div></div><div>Run</div><div>Step</div><div>Value</div></div> -->
-    <div class="entry" v-for="entry in state.legend">
-      <div :style="{ background: entry.color }"></div>
-      <div>{{ entry.run }}</div>
-      <div>{{ entry.step }}</div>
-      <div>{{ entry.formattedValue }}</div>
+<template #default>
+  <div class="content layoutCol">
+
+    <div class="chart">
+      <canvas ref="canvas"></canvas>
     </div>
-    <!-- </div> -->
-  </div>
 
-</div>
+    <div class="legend">
+      <!-- <div class="entries"> -->
+      <!-- <div class="entry head"><div></div><div>Run</div><div>Step</div><div>Value</div></div> -->
+      <div class="entry" v-for="entry in state.legend">
+        <div :style="{ background: entry.color }"></div>
+        <div>{{ entry.run }}</div>
+        <div>{{ entry.step }}</div>
+        <div>{{ entry.formattedValue }}</div>
+      </div>
+      <!-- </div> -->
+    </div>
+
+  </div>
+</template>
+
 </Card>
 </template>
 
@@ -178,8 +194,8 @@ function bisectNearestX(array, target) {
 
 .entry div:nth-child(1) { flex: 0 0 1rem; margin-right: .5rem; width: 1rem; height: 100%; min-height: 1rem; border-radius: .2rem; }
 .entry div:nth-child(2) { flex: 1 1 content; margin-right: .5rem; word-break: break-all; line-height: 0.95; font-size: 0.8rem; }
-.entry div:nth-child(3) { flex: 0 0 5rem; margin-right: .5rem; text-align: right; }
-.entry div:nth-child(4) { flex: 0 0 5rem; padding-right: .5rem; text-align: right; }
+.entry div:nth-child(3) { flex: 0 0 10ch; margin-right: .5rem; text-align: right; }
+.entry div:nth-child(4) { flex: 0 0 10ch; padding-right: .5rem; text-align: right; }
 
 </style>
 

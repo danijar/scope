@@ -154,7 +154,7 @@ function toggleLayout() {
 .content { flex: 1 1; }
 
 .center { flex: 1 1 20rem; overflow: auto; background: #eee; }
-.left, .right { flex: 0 1 20rem; }
+.left, .right { flex: 0 1 20rem; max-width: 25%; }
 
 .header h1 { font-size: 1.8rem; font-weight: 500; color: #000; padding-left: 1.3em; line-height: 1em; background: url(/logo.png) no-repeat; background-size: contain; user-select: none; }
 
