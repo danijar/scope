@@ -154,13 +154,13 @@ function toggleLayout() {
 .content { flex: 1 1; }
 
 .center { flex: 1 1 20rem; overflow: auto; background: #eee; }
-.left, .right { flex: 0 1 20rem; max-width: 25%; }
+.left, .right { flex: 0 1 20rem; max-width: 20%; }
 
 .header h1 { font-size: 1.8rem; font-weight: 500; color: #000; padding-left: 1.3em; line-height: 1em; background: url(/logo.png) no-repeat; background-size: contain; user-select: none; }
 
 .selector { flex: 1 1 0; overflow: hidden; padding: 1rem 0 0 1rem; }
 
 .cards { --columns: v-bind(state.columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; }
-.card { flex: 1 1 20rem; aspect-ratio: 4 / 3; border: 1px solid #ddd; }
+.card { height: 30rem; max-height: 80vh; border: 1px solid #ddd; }
 
 </style>

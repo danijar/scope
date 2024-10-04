@@ -51,6 +51,6 @@ h3 { margin: 0; }
 
 .buttons { float: right; margin: -.3rem; }
 
-.zoom.card { position: absolute; height: inherit; aspect-ratio: auto; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }
+.zoom.card { position: absolute; height: inherit; max-height: inherit; aspect-ratio: auto; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }
 
 </style>

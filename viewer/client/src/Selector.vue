@@ -72,6 +72,7 @@ function unselect(item) {
 
 h2 { flex: 0 1 content; margin: 0 .2rem .4rem; font-size: 1.3rem; font-weight: 500; color: #333; }
 
+.search { display: flex; }
 .search .icon { font-size: 1.4rem; color: #aaa; margin: 0 .1rem .1rem 0; }
 .search input { flex: 0 0 content; margin: 0; padding: .2rem; font-family: monospace; border: none; border-radius: .2rem .2rem 0 0; color: #777; }
 .search input::placeholder { color: #777; }
