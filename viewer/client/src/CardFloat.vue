@@ -36,11 +36,6 @@ const colors = [
 
 onMounted(async () => {
 
-  const semiLog = {
-    transform: (x) => { return Math.sign(x) * Math.log(Math.abs(x) + 1e-8) },
-    inverseTransform: (x) => { return Math.sign(x) * (Math.exp(Math.abs(x)) - 1e-8) }
-  }
-
   const canvas = root.value.$el.querySelector('canvas')
   chart[0] = new Chart(canvas, {
     type: 'line',
@@ -169,38 +164,38 @@ function bisectNearestX(array, target) {
   return (array[lo] - target) < (target - array[hi]) ? lo : hi
 }
 
-function toggleLogScaleX() {
-  if (chart[0].options.scales.y.type == 'linear')
-    chart[0].options.scales.y.type = 'logarithmic'
-  else
-    chart[0].options.scales.y.type = 'linear'
-  chart[0].update()
-}
+// function toggleLogScaleX() {
+//   if (chart[0].options.scales.y.type == 'linear')
+//     chart[0].options.scales.y.type = 'logarithmic'
+//   else
+//     chart[0].options.scales.y.type = 'linear'
+//   chart[0].update()
+// }
 
 </script>
 
 <template>
 <Card :name="props.name" :status="state.status" ref="root">
 
-<template #buttons>
-  <span class="btn icon" @click="toggleLogScaleX">query_stats</span>
-</template>
+  <!-- <template #buttons> -->
+  <!--   <span class="btn icon" @click="toggleLogScaleX">query_stats</span> -->
+  <!-- </template> -->
 
-<template #default>
-  <div class="content layoutCol">
-    <div ref="chart" class="chart">
-      <canvas></canvas>
-    </div>
-    <div class="legend">
-      <div class="entry" v-for="entry in state.legend">
-        <div :style="{ background: entry.color }"></div>
-        <div>{{ entry.run }}</div>
-        <div>{{ entry.formattedStep }}</div>
-        <div>{{ entry.formattedValue }}</div>
+  <template #default>
+    <div class="content layoutCol">
+      <div ref="chart" class="chart">
+        <canvas></canvas>
       </div>
-    </div>
- </div>
-</template>
+      <div class="legend">
+        <div class="entry" v-for="entry in state.legend">
+          <div :style="{ background: entry.color }"></div>
+          <div>{{ entry.run }}</div>
+          <div>{{ entry.formattedStep }}</div>
+          <div>{{ entry.formattedValue }}</div>
+        </div>
+      </div>
+   </div>
+  </template>
 
 </Card>
 </template>

@@ -26,6 +26,7 @@
 }
 
 .btn {
+  flex: 0 0 content;
   display: inline-block;
   cursor: pointer;
   padding: .3rem;
@@ -35,7 +36,7 @@
 }
 .btn:hover { background: #eee; }
 .btn:active { background: #ddd; }
-.btn + .btn { margin-left: .3rem; }
+.btn + .btn { margin-left: .1rem; }
 
 .layoutCol { display: flex; overflow: hidden; flex-direction: column; }
 .layoutRow { display: flex; overflow: hidden; flex-direction: row; }

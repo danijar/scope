@@ -157,6 +157,7 @@ function toggleLayout() {
 .left, .right { flex: 0 1 20rem; max-width: 20%; }
 
 .header h1 { font-size: 1.8rem; font-weight: 500; color: #000; padding-left: 1.3em; line-height: 1em; background: url(/logo.png) no-repeat; background-size: contain; user-select: none; }
+.header .btn { margin-left: .5rem; }
 
 .selector { flex: 1 1 0; overflow: hidden; padding: 1rem 0 0 1rem; }
 

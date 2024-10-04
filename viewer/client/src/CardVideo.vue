@@ -1,6 +1,6 @@
 <script setup>
 
-import { reactive, computed, watch, onMounted } from 'vue'
+import { reactive, computed, watch, onMounted, useTemplateRef } from 'vue'
 import Card from './Card.vue'
 
 const props = defineProps({
@@ -11,7 +11,10 @@ const props = defineProps({
 const state = reactive({
   status: '',
   cols: [],
+  playing: false,
 })
+
+const root = useTemplateRef('root')
 
 onMounted(async () => {
   state.status = 'loading...'
@@ -30,18 +33,44 @@ onMounted(async () => {
   state.status = ''
 })
 
+function togglePlayAll() {
+  const videos = [...root.value.$el.querySelectorAll('video')]
+  if (state.playing)
+    videos.map(x => x.pause())
+  else
+    videos.map(x => x.play())
+  state.playing = !state.playing
+}
+
+function stopAll() {
+  [...root.value.$el.querySelectorAll('video')].map(x => {
+    x.pause()
+    x.currentTime = 0
+  })
+}
+
 </script>
 
 <template>
-<Card :name="props.name" :status="state.status">
-  <div v-for="col in state.cols" class="col">
-    <h3> {{ col.run }}</h3>
-    <span>Count: {{ col.steps.length }}</span><br>
-    <span>Step: {{ col.steps[col.steps.length - 1] }}</span><br>
-    <video controls loop v-if="col.steps.length">
-      <source :src="col.url" type="video/mp4">
-    </video>
-  </div>
+<Card :name="props.name" :status="state.status" ref="root">
+
+  <template #buttons>
+    <span class="btn icon" @click="togglePlayAll" v-if="!state.playing" title="Play all">play_arrow</span>
+    <span class="btn icon" @click="togglePlayAll" v-if="state.playing" title="Pause all">pause</span>
+    <span class="btn icon" @click="stopAll" title="Stop all">stop</span>
+  </template>
+
+  <template #default>
+    <div v-for="col in state.cols" class="col">
+      <h3> {{ col.run }}</h3>
+      <span>Count: {{ col.steps.length }}</span><br>
+      <span>Step: {{ col.steps[col.steps.length - 1] }}</span><br>
+      <video controls loop v-if="col.steps.length">
+        <source :src="col.url" type="video/mp4">
+      </video>
+    </div>
+  </template>
+
 </Card>
 </template>
 

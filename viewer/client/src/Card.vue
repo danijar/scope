@@ -26,7 +26,7 @@ function toggleZoom() {
 
 <template>
 <div
-  class="card layoutCol" :class="{ zoom: state.zoom }"
+  class="card layoutCol" :class="{ zoom: state.zoom }" title="Fullscreen"
   tabindex="0" @keydown.f.prevent="toggleZoom" @keydown.esc.prevent="state.zoom = false">
   <div class="header">
     <div class="buttons layoutRow">

@@ -47,15 +47,34 @@ function unselect(item) {
   emit('unselect', item)
 }
 
+function selectAll() {
+  let count = 0
+  for (const item of matchesDisplay.value) {
+    select(item)
+    count++
+    if (count >= 10)
+      break
+  }
+}
+
+function unselectAll() {
+  for (const item of state.selected)
+    unselect(item)
+}
+
 </script>
 
 <template>
 <div class="selector">
   <h2 v-if="props.title.length">{{ props.title }}</h2>
-  <label class="search">
-    <span class="icon">search</span>
-    <input v-model="state.pattern" placeholder="Search" />
-  </label>
+  <div class="inputs layoutRow">
+    <label class="layoutRow">
+      <span class="icon">search</span>
+      <input v-model="state.pattern" placeholder="Search" />
+    </label>
+    <span class="btn icon" @click="selectAll" title="Select 10 more">check</span>
+    <span class="btn icon" @click="unselectAll" title="Unselect all">close</span>
+  </div>
   <div class="list">
     <ul v-if="selectedDisplay.length">
       <li v-for="item in selectedDisplay" @click="unselect(item)" class="selected"><span>{{ item }}</span></li>
@@ -70,17 +89,17 @@ function unselect(item) {
 <style scoped>
 .selector { display: flex; flex-direction: column; }
 
-h2 { flex: 0 1 content; margin: 0 .2rem .4rem; font-size: 1.3rem; font-weight: 500; color: #333; }
+h2 { flex: 0 0 content; margin: 0 .2rem .4rem; font-size: 1.3rem; font-weight: 500; color: #333; }
 
-.search { display: flex; }
-.search .icon { font-size: 1.4rem; color: #aaa; margin: 0 .1rem .1rem 0; }
-.search input { flex: 0 0 content; margin: 0; padding: .2rem; font-family: monospace; border: none; border-radius: .2rem .2rem 0 0; color: #777; }
-.search input::placeholder { color: #777; }
-.search input:focus { outline: none; }
+.inputs { flex: 0 0 content; align-items: center; padding: 0 .5rem .4rem 0; }
+
+label .icon { color: #999; }
+input { flex: 1 1 content; margin: 0 .3rem; padding: .2rem; font-family: monospace; border: none; color: #888; }
+input::placeholder { color: #888; }
+input:focus { outline: none; }
 
 .list { flex: 1 1 content; overflow: scroll; }
-ul { list-style: none; padding: 0; margin: .5rem 0; }
-ul + ul { padding-top: 0; }
+ul { list-style: none; padding: 0; margin: .3rem 0 .5rem; }
 
 li { cursor: default; font-family: monospace; }
 li span { display: inline-block; padding: .2rem .2rem; line-height: 0.95; white-space: nowrap; /* background: #fff; */ border-radius: .2rem; }
