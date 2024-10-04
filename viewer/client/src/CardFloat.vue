@@ -122,7 +122,7 @@ onMounted(async () => {
 })
 
 function updateLegend(nearestStep) {
-  const datasets = chart[0].data.datasets.slice(1)
+  const datasets = chart[0].data.datasets
   state.legend = datasets.map(dataset => {
     const index = bisectNearestX(dataset.data, nearestStep)
     const value = dataset.data[index].y
