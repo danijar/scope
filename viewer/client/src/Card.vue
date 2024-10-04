@@ -26,13 +26,13 @@ function toggleZoom() {
 
 <template>
 <div
-  class="card layoutCol" :class="{ zoom: state.zoom }" title="Fullscreen"
+  class="card layoutCol" :class="{ zoom: state.zoom }"
   tabindex="0" @keydown.f.prevent="toggleZoom" @keydown.esc.prevent="state.zoom = false">
   <div class="header">
     <h2>{{ props.name }}</h2>
     <div class="buttons">
       <slot name="buttons"></slot>
-      <span class="btn icon" @click="toggleZoom">fullscreen</span>
+      <span class="btn icon" @click="toggleZoom" title="Fullscreen">fullscreen</span>
     </div>
   </div>
   <div class="content">
