@@ -29,14 +29,14 @@ function toggleZoom() {
   class="card layoutCol" :class="{ zoom: state.zoom }" title="Fullscreen"
   tabindex="0" @keydown.f.prevent="toggleZoom" @keydown.esc.prevent="state.zoom = false">
   <div class="header">
-    <div class="buttons layoutRow">
+    <h2>{{ props.name }}</h2>
+    <div class="buttons">
       <slot name="buttons"></slot>
       <span class="btn icon" @click="toggleZoom">fullscreen</span>
     </div>
-    <h2>{{ props.name }}</h2>
-    <span v-if="props.status">{{ props.status }}</span>
   </div>
   <div class="content">
+    <span v-if="props.status">{{ props.status }}</span>
     <slot></slot>
   </div>
 </div>
@@ -44,12 +44,11 @@ function toggleZoom() {
 
 <style scoped>
 .card { padding: 1rem 0; background: white; border-radius: .2rem; }
-.header { flex: 0 0 content; padding: 0 1rem 1rem; }
+.header { flex: 0 0 content; display: flex; padding: 0 1rem 1rem; }
 .content { flex: 1 1 content; width: 100%; overflow-x: hidden; overflow-y: auto; padding: 0 1rem; }
 
-h3 { margin: 0; }
-
-.buttons { float: right; margin: -.3rem; }
+h2 { flex: 1 1 content; margin: 0; }
+.buttons { flex: 0 0 content; margin: -.3rem; margin-left: 0; }
 
 .zoom.card { position: absolute; height: inherit; max-height: inherit; aspect-ratio: auto; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }
 

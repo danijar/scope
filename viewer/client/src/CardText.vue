@@ -42,9 +42,9 @@ onMounted(async () => {
 <Card :name="props.name" :status="state.status">
   <div v-for="col in state.cols" class="col">
     <h3> {{ col.run }}</h3>
-    <span>Count: {{ col.steps.length }}</span><br>
-    <span>Step: {{ col.steps[col.steps.length - 1] }}</span><br>
-    <p v-html="col.text"></p>
+    <span class="count">Count: {{ col.steps.length }}</span>
+    <span class="step">Step: {{ col.steps[col.steps.length - 1] }}</span><br>
+    <pre v-html="col.text"></pre>
   </div>
 </Card>
 </template>
@@ -55,7 +55,9 @@ onMounted(async () => {
 .col:first-child { margin-top: 0 }
 
 h3 { margin: 0; }
-p { margin: .3rem 0 0; padding: .3rem; font-family: monospace; background: #eee; color: #444; border-radius: .2rem; overflow: auto; }
+pre { margin: .3rem 0 0; padding: .3rem; font-family: monospace; background: #eee; color: #444; border-radius: .2rem; overflow: auto; }
+
+.count, .step { display: inline-block; margin: .2rem .5rem .2rem 0; }
 
 </style>
 

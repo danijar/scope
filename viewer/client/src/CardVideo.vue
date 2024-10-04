@@ -63,8 +63,8 @@ function stopAll() {
   <template #default>
     <div v-for="col in state.cols" class="col">
       <h3> {{ col.run }}</h3>
-      <span>Count: {{ col.steps.length }}</span><br>
-      <span>Step: {{ col.steps[col.steps.length - 1] }}</span><br>
+      <span class="count">Count: {{ col.steps.length }}</span>
+      <span class="step">Step: {{ col.steps[col.steps.length - 1] }}</span><br>
       <video controls loop v-if="col.steps.length">
         <source :src="col.url" type="video/mp4">
       </video>
@@ -80,7 +80,9 @@ function stopAll() {
 .col:first-child { margin-top: 0 }
 
 h3 { margin: 0; }
-video { max-width: 100%; max-height: 50%; /* 15rem */ }
+video { max-width: 100%; max-height: 25rem; /* 15rem */ }
+
+.count, .step { display: inline-block; margin: .2rem .5rem .2rem 0; }
 
 </style>
 

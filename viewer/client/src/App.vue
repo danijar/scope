@@ -12,17 +12,6 @@ const persist = ['expids', 'exps', 'runs', 'cols', 'selExps', 'selRuns', 'selMet
 
 const state = reactive({
   status: '',
-  // columns: 3,
-  // columns: 2,
-
-  // expids: [],
-  // exps: {}
-  // runs: {},
-  // cols: {},
-  // selExps: new Set(),
-  // selRuns: new Set(),
-  // selMets: new Set(),
-
   columns: loadStorage('columns', 3),
   expids: loadStorage('expids', []),
   exps: loadStorage('exps', {}),
@@ -40,7 +29,7 @@ watch(state.cols, x => saveStorage('cols', x))
 watch(state.selExps, x => saveStorage('selExps', x))
 watch(state.selRuns, x => saveStorage('selRuns', x))
 watch(state.selMets, x => saveStorage('selMets', x))
-watch(state.columns, x => saveStorage('columns', x))
+watch(state, x => saveStorage('columns', x.columns))
 
 function colToMet(col) {
   return col.substr(col.lastIndexOf(':') + 1)
