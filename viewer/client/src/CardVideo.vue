@@ -66,7 +66,7 @@ function stopAll() {
       <span class="count">Count: {{ col.steps.length }}</span>
       <span class="step">Step: {{ col.steps[col.steps.length - 1] }}</span><br>
       <video controls loop v-if="col.steps.length">
-        <source :src="col.url" type="video/mp4">
+        <source :src="col.url">
       </video>
     </div>
   </template>

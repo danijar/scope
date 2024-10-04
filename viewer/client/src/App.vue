@@ -117,7 +117,7 @@ function toggleLayout() {
       <div class="cards">
         <template v-for="group in selGroups" :key="group.met">
           <CardFloat v-if="group.ext == 'float'"    :name="group.name" :cols="group.cols" class="card" />
-          <CardVideo v-else-if="group.ext == 'mp4'" :name="group.name" :cols="group.cols" class="card" />
+          <CardVideo v-else-if="['mp4', 'webm'].includes(group.ext)" :name="group.name" :cols="group.cols" class="card" />
           <CardText  v-else-if="group.ext == 'txt'" :name="group.name" :cols="group.cols" class="card" />
           <Card v-else :name="group.name" class="card">Unknown metric type: {{ group.ext }}</Card>
         </template>

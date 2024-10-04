@@ -93,7 +93,7 @@ def get_col(colid: str):
     buffer = fs.read(path)
     steps, values = tuple(zip(*struct.iter_unpack('>qd', buffer)))
     return {'steps': steps, 'values': values}
-  elif ext in ('mp4', 'txt'):
+  elif ext in ('txt', 'mp4', 'webm'):
     buffer = fs.read(path + '/index')
     steps, idents = tuple(zip(*struct.iter_unpack('q8s', buffer)))
     filenames = [f'{s:020}-{x.hex()}.{ext}' for s, x in zip(steps, idents)]
@@ -107,29 +107,38 @@ def get_col(colid: str):
 def get_file(fileid: str):
   print(f'GET /file/{fileid}', flush=True)
   ext = fileid.rsplit('.', 1)[-1]
-  assert ext in ('mp4', 'txt'), fileid
   path = root + '/' + fileid.replace(':', '/')
-
-  if ext == 'mp4':
-    fp = fs.open(path)
-    fp.seek(0)
-    total = fp.blob.size
-    def iterfile():
-      remaining = total
-      while remaining > 0:
-        chunk = fp.read(min(128 * 1024, remaining))
-        remaining -= len(chunk)
-        yield chunk
-      fp.close()
-    headers = {
-        'Content-Disposition': f'attachment; filename={fileid}.mp4',
-    }
-    return fastapi.responses.StreamingResponse(
-        iterfile(), media_type='video/mp4', headers=headers)
 
   if ext == 'txt':
     text = fs.read(path).decode('utf-8')
     return {'text': text}
+
+  elif ext in ('mp4', 'webm'):
+    fp = fs.open(path)
+    fp.seek(0)
+    def iterfile():
+      if hasattr(fp, 'blob'):
+        remaining = fp.blob.size
+        while remaining > 0:
+          chunk = fp.read(min(128 * 1024, remaining))
+          remaining -= len(chunk)
+          yield chunk
+      else:
+        while True:
+          chunk = fp.read(128 * 1024)
+          if not chunk:
+            break
+          yield chunk
+      fp.close()
+    headers = {
+        'Content-Disposition': f'attachment; filename={fileid}.{ext}',
+    }
+    return fastapi.responses.StreamingResponse(
+        iterfile(), media_type=f'video/{ext}', headers=headers)
+
+  else:
+    raise NotImplementedError((fileid, ext))
+
 
 
 def find_runs(folder, workers=32):
