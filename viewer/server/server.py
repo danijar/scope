@@ -1,3 +1,4 @@
+import concurrent.futures
 import io
 import os
 import struct
@@ -131,18 +132,33 @@ def get_file(fileid: str):
     return {'text': text}
 
 
-def find_runs(folder):
+def find_runs(folder, workers=32):
+  if not workers:
+    leafs = []
+    queue = [folder]
+    while queue:
+      node = queue.pop(0)
+      children = fs.list(node)
+      if any(x.endswith('/scope') for x in children):
+        leafs.append(node)
+      else:
+        queue += children
+    return leafs
   leafs = []
-  queue = [folder]
-  while queue:
-    node = queue.pop(0)
-    children = fs.list(node)
-    if not children:
-      pass
-    elif any(x.endswith('/scope') for x in children):
-      leafs.append(node)
-    else:
-      queue += children
+  with concurrent.futures.ThreadPoolExecutor(workers) as pool:
+    future = pool.submit(fs.list, folder)
+    future.parent = folder
+    queue = [future]
+    while queue:
+      future = queue.pop(0)
+      children = future.result()
+      if any(x.endswith('/scope') for x in children):
+        leafs.append(future.parent)
+      else:
+        for child in children:
+          future = pool.submit(fs.list, child)
+          future.parent = child
+          queue.append(future)
   return leafs
 
 
