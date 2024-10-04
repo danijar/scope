@@ -43,7 +43,9 @@ function togglePlayAll() {
 }
 
 function stopAll() {
-  [...root.value.$el.querySelectorAll('video')].map(x => {
+  state.playing = false
+  const elements = [...root.value.$el.querySelectorAll('video')]
+  elements.map(x => {
     x.pause()
     x.currentTime = 0
   })
