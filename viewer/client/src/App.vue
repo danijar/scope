@@ -84,7 +84,7 @@ const selGroups = computed(() => {
 
 onMounted(async () => {
   if (state.expids.length == 0) {
-    state.status = 'loading /exps...'
+    state.status = 'Loading /exps'
     state.expids = (await (await fetch('/api/exps')).json())['exps']
     saveStorage('expids', state.expids)  // TODO: fix watcher
     state.status = ''
@@ -92,13 +92,13 @@ onMounted(async () => {
 })
 
 async function selectExp(expid) {
-  state.status = `loading exp/${expid}...`
+  state.status = `Loading exp/${expid}`
   state.exps[expid] = await (await fetch(`/api/exp/${expid}`)).json()
   state.status = ''
 }
 
 async function selectRun(runid) {
-  state.status = `loading run/${runid}...`
+  state.status = `Loading run/${runid}`
   state.runs[runid] = await (await fetch(`/api/run/${runid}`)).json()
   state.status = ''
 }
@@ -126,7 +126,6 @@ function toggleLayout() {
     </div>
     <div class="center">
       <div class="cards">
-        <span v-if="state.status">{{ state.status }}</span>
         <template v-for="group in selGroups" :key="group.met">
           <CardFloat v-if="group.ext == 'float'"    :name="group.name" :cols="group.cols" class="card" />
           <CardVideo v-else-if="group.ext == 'mp4'" :name="group.name" :cols="group.cols" class="card" />
@@ -144,6 +143,9 @@ function toggleLayout() {
         title="Runs" class="selector" />
     </div>
   </div>
+  <!-- <div class="footer layoutRow"> -->
+  <!--   <span class="status">{{ state.status }}</span> -->
+  <!-- </div> -->
 </div>
 </template>
 
@@ -151,6 +153,7 @@ function toggleLayout() {
 
 .app { height: 100vh; width: 100vw; }
 .header { flex: 0 0 content; align-items: center; padding: 1rem; border-bottom: 2px solid #eee; }
+.footer { flex: 0 0 3rem; align-items: center; padding: 1rem; border-top: 2px solid #eee; }
 .content { flex: 1 1; }
 
 .center { flex: 1 1 20rem; overflow: auto; background: #eee; }
@@ -163,5 +166,7 @@ function toggleLayout() {
 
 .cards { --columns: v-bind(state.columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; }
 .card { height: 30rem; max-height: 80vh; border: 1px solid #ddd; }
+
+.status { color: #999; }
 
 </style>

@@ -77,10 +77,16 @@ function unselectAll() {
   </div>
   <div class="list">
     <ul v-if="selectedDisplay.length">
-      <li v-for="item in selectedDisplay" @click="unselect(item)" class="selected"><span>{{ item }}</span></li>
+      <li v-for="item in selectedDisplay" @click="unselect(item)" class="selected">
+        <span class="icon">check_box</span>
+        <div>{{ item }}</div>
+      </li>
     </ul>
     <ul v-if="matchesDisplay.length" >
-      <li v-for="item in matchesDisplay" @click="select(item)"><span>{{ item }}</span></li>
+      <li v-for="item in matchesDisplay" @click="select(item)" class="matched">
+        <span class="icon">check_box_outline_blank</span>
+        <div>{{ item }}</div>
+      </li>
     </ul>
   </div>
 </div>
@@ -91,7 +97,7 @@ function unselectAll() {
 
 h2 { flex: 0 0 content; margin: 0 .2rem .4rem; font-size: 1.3rem; font-weight: 500; color: #333; }
 
-.inputs { flex: 0 0 content; align-items: center; padding: 0 .5rem .4rem 0; }
+.inputs { flex: 0 0 content; align-items: center; padding: 0 .5rem .3rem 0; /* border-bottom: 1px solid #ddd; */ }
 
 label .icon { color: #999; }
 input { flex: 1 1 content; margin: 0 .3rem; padding: .2rem; font-family: monospace; border: none; color: #888; }
@@ -99,12 +105,17 @@ input::placeholder { color: #888; }
 input:focus { outline: none; }
 
 .list { flex: 1 1 content; overflow: scroll; }
-ul { list-style: none; padding: 0; margin: .3rem 0 .5rem; }
+ul { list-style: none; padding: 0; margin: 0 0 .5rem; }
 
-li { cursor: default; font-family: monospace; }
-li span { display: inline-block; padding: .2rem .2rem; line-height: 0.95; white-space: nowrap; /* background: #fff; */ border-radius: .2rem; }
-li:hover span { background: #eee; }
-li.selected { margin: .3rem 0; }
-li.selected span { background: #ddd; }
-li.selected:hover span { background: #ccc; }
+li { display: flex; align-items: center; cursor: pointer; line-height: 0.95; font-family: monospace; border-radius: .2rem; }
+li div { display: 1 1 content; display: inline-block; padding: .2rem; line-height: 0.95; white-space: nowrap; word-break: break-all; }
+li:hover { background: #eee; }
+
+/*
+.selected { margin: .3rem 0; }
+.selected span { background: #ddd; }
+.selected:hover span { background: #ccc; }
+.matched:hover span { background: #eee; }
+*/
+
 </style>
