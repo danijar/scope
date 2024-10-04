@@ -171,10 +171,7 @@ def table_append(filename, fmt, *cols):
 def table_read(filename, fmt, start=0, stop=None):
   assert stop is None or start < stop, (start, stop)
   if start == 0 and stop is None:
-    if isinstance(filename, bytes):
-      buffer = filename
-    else:
-      buffer = filename.read_bytes()
+    buffer = filename.read_bytes()
   else:
     size = struct.calcsize(fmt)
     with filename.open('rb') as f:

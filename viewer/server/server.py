@@ -1,21 +1,18 @@
 import io
 import os
-import pathlib
+import struct
 import subprocess
-import sys
 
 import elements
 import fastapi
 import fastapi.responses
 import uvicorn
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
-import scope
-
 args = elements.Flags(
     root=os.environ.get('SCOPE_ROOT', ''),
-    ls=os.environ.get('SCOPE_LS', 'gsutil ls'),
+    ls=os.environ.get('SCOPE_LS', ''),
     cat=os.environ.get('SCOPE_CAT', ''),
+    port=6008,
 ).parse()
 print(args)
 root = args.root.rstrip('/')
@@ -61,7 +58,7 @@ fs = FileSystem()
 
 @app.get('/exps')
 def get_exps():
-  print('GET /exps')
+  print('GET /exps', flush=True)
   folders = fs.list(root)
   expids = [x.rsplit('/', 1)[-1] for x in folders]
   return {'exps': expids}
@@ -69,7 +66,7 @@ def get_exps():
 
 @app.get('/exp/{expid}')
 def get_exp(expid: str):
-  print(f'GET /exp/{expid}')
+  print(f'GET /exp/{expid}', flush=True)
   folders = find_runs(root + '/' + expid)
   folders = [x.removeprefix(str(root))[1:] for x in folders]
   runids = [x.replace('/', ':') for x in folders]
@@ -78,7 +75,7 @@ def get_exp(expid: str):
 
 @app.get('/run/{runid}')
 def get_run(runid: str):
-  print(f'GET /run/{runid}')
+  print(f'GET /run/{runid}', flush=True)
   folder = root + '/' + runid.replace(':', '/') + '/scope'
   children = fs.list(folder)
   children = [x.removeprefix(str(root))[1:] for x in children]
@@ -88,16 +85,16 @@ def get_run(runid: str):
 
 @app.get('/col/{colid}')
 def get_col(colid: str):
-  print(f'GET /col/{colid}')
+  print(f'GET /col/{colid}', flush=True)
   ext = colid.rsplit('.', 1)[-1]
   path = root + '/' + colid.replace(':', '/')
   if ext == 'float':
     buffer = fs.read(path)
-    steps, values = scope.table_read(buffer, '>qd')
+    steps, values = tuple(zip(*struct.iter_unpack('>qd', buffer)))
     return {'steps': steps, 'values': values}
   elif ext in ('mp4', 'txt'):
     buffer = fs.read(path + '/index')
-    steps, idents = scope.table_read(buffer, 'q8s')
+    steps, idents = tuple(zip(*struct.iter_unpack('q8s', buffer)))
     filenames = [f'{s:020}-{x.hex()}.{ext}' for s, x in zip(steps, idents)]
     values = [f'{colid}:{x}' for x in filenames]
     return {'steps': steps, 'values': values}
@@ -107,7 +104,7 @@ def get_col(colid: str):
 
 @app.get('/file/{fileid}')
 def get_file(fileid: str):
-  print(f'GET /file/{fileid}')
+  print(f'GET /file/{fileid}', flush=True)
   ext = fileid.rsplit('.', 1)[-1]
   assert ext in ('mp4', 'txt'), fileid
   path = root + '/' + fileid.replace(':', '/')
@@ -150,12 +147,4 @@ def find_runs(folder):
 
 
 if __name__ == '__main__':
-
-  # import rich.traceback
-  # rich.traceback.install()
-  # x = 'e4ffb7_20240918T233314_us_vpt_shmap:23f6d8-dummy-arflow_shmap-1:scope:eval-openloop-video.mp4'
-  # # x = 'e4ffb7_20240918T233314_us_vpt_shmap:23f6d8-dummy-arflow_shmap-1:scope:report-loss-dyn.float'
-  # x = get_col(x)
-  # print(x)
-
-  uvicorn.run('__main__:app', host='0.0.0.0', port=6008, reload=True)
+  uvicorn.run('__main__:app', host='0.0.0.0', port=args.port, reload=True)
