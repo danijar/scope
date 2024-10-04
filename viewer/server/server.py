@@ -1,3 +1,5 @@
+import io
+import os
 import pathlib
 import subprocess
 import sys
@@ -10,15 +12,46 @@ import uvicorn
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
 import scope
 
-
 args = elements.Flags(
-    root='gs://dm-gdm-worldmodel-team-us-ut-da6189d76684/logdir',
+    root=os.environ.get('SCOPE_ROOT', ''),
+    ls=os.environ.get('SCOPE_LS', 'gsutil ls'),
+    cat=os.environ.get('SCOPE_CAT', ''),
 ).parse()
-
-assert args.root, args.root
-root = elements.Path(args.root)
+print(args)
+root = args.root.rstrip('/')
+assert root, root
 
 app = fastapi.FastAPI(debug=True)
+
+
+class FileSystem:
+
+  def list(self, path):
+    path = path.rstrip('/')
+    if args.ls:
+      try:
+        output = subprocess.check_output([*args.ls.split(), path])
+        names = [x.decode('utf-8').rstrip('/') for x in output.splitlines()]
+      except subprocess.CalledProcessError:
+        names = []
+    else:
+      names = [str(x).rstrip('/') for x in elements.Path(path).glob('*')]
+    names = [x for x in names if x != path]
+    return names
+
+  def read(self, path):
+    if args.cat:
+      return subprocess.check_output([*args.cat.split(), str(path)])
+    else:
+      return elements.Path(path).read_bytes()
+
+  def open(self, path):
+    if args.cat:
+      return io.BytesIO(self.read(path))
+    else:
+      return elements.Path(path).open('rb')
+
+fs = FileSystem()
 
 
 # @app.get('/', response_class=fastapi.responses.HTMLResponse)
@@ -28,38 +61,43 @@ app = fastapi.FastAPI(debug=True)
 
 @app.get('/exps')
 def get_exps():
-  folders = ls(root, folders=True, files=False)
-  expids = [x[:-1].rsplit('/', 1)[-1] for x in folders]
+  print('GET /exps')
+  folders = fs.list(root)
+  expids = [x.rsplit('/', 1)[-1] for x in folders]
   return {'exps': expids}
 
 
 @app.get('/exp/{expid}')
 def get_exp(expid: str):
-  folders = find_runs(root / expid)
-  folders = [x.removeprefix(str(root)).strip('/') for x in folders]
+  print(f'GET /exp/{expid}')
+  folders = find_runs(root + '/' + expid)
+  folders = [x.removeprefix(str(root))[1:] for x in folders]
   runids = [x.replace('/', ':') for x in folders]
   return {'runs': runids}
 
 
 @app.get('/run/{runid}')
 def get_run(runid: str):
-  folder = str(root / runid.replace(':', '/') / 'scope')
-  children = ls(folder)
-  children = [x for x in children if x.strip('/') != folder]
-  children = [x.removeprefix(str(root)).strip('/') for x in children]
+  print(f'GET /run/{runid}')
+  folder = root + '/' + runid.replace(':', '/') + '/scope'
+  children = fs.list(folder)
+  children = [x.removeprefix(str(root))[1:] for x in children]
   colids = [x.replace('/', ':') for x in children]
   return {'cols': colids}
 
 
 @app.get('/col/{colid}')
 def get_col(colid: str):
+  print(f'GET /col/{colid}')
   ext = colid.rsplit('.', 1)[-1]
-  path = root / colid.replace(':', '/')
+  path = root + '/' + colid.replace(':', '/')
   if ext == 'float':
-    steps, values = scope.table_read(path, '>qd')
+    buffer = fs.read(path)
+    steps, values = scope.table_read(buffer, '>qd')
     return {'steps': steps, 'values': values}
   elif ext in ('mp4', 'txt'):
-    steps, idents = scope.table_read(path / 'index', 'q8s')
+    buffer = fs.read(path + '/index')
+    steps, idents = scope.table_read(buffer, 'q8s')
     filenames = [f'{s:020}-{x.hex()}.{ext}' for s, x in zip(steps, idents)]
     values = [f'{colid}:{x}' for x in filenames]
     return {'steps': steps, 'values': values}
@@ -69,12 +107,13 @@ def get_col(colid: str):
 
 @app.get('/file/{fileid}')
 def get_file(fileid: str):
+  print(f'GET /file/{fileid}')
   ext = fileid.rsplit('.', 1)[-1]
   assert ext in ('mp4', 'txt'), fileid
-  path = root / fileid.replace(':', '/')
+  path = root + '/' + fileid.replace(':', '/')
 
   if ext == 'mp4':
-    fp = path.open('rb')
+    fp = fs.open(path)
     fp.seek(0)
     total = fp.blob.size
     def iterfile():
@@ -91,7 +130,7 @@ def get_file(fileid: str):
         iterfile(), media_type='video/mp4', headers=headers)
 
   if ext == 'txt':
-    text = path.read_text()
+    text = fs.read(path).decode('utf-8')
     return {'text': text}
 
 
@@ -100,28 +139,14 @@ def find_runs(folder):
   queue = [folder]
   while queue:
     node = queue.pop(0)
-    children = ls(node, folders=True, files=False)
+    children = fs.list(node)
     if not children:
       pass
-    elif any(x.endswith('/scope/') for x in children):
-      leafs.append(node.strip('/'))
+    elif any(x.endswith('/scope') for x in children):
+      leafs.append(node)
     else:
       queue += children
   return leafs
-
-
-def ls(folder, folders=True, files=True):
-  try:
-    output = subprocess.check_output(['gsutil', 'ls', str(folder)])
-  except subprocess.CalledProcessError:
-    output = ''
-  lines = [x.decode('utf-8') for x in output.splitlines()]
-  results = []
-  if folders:
-    results += [line for line in lines if line.endswith('/')]
-  if files:
-    results += [line for line in lines if not line.endswith('/')]
-  return results
 
 
 if __name__ == '__main__':

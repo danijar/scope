@@ -40,7 +40,7 @@ watch(state.cols, x => saveStorage('cols', x))
 watch(state.selExps, x => saveStorage('selExps', x))
 watch(state.selRuns, x => saveStorage('selRuns', x))
 watch(state.selMets, x => saveStorage('selMets', x))
-watch(state.columns, x => saveStorage('columns', state.columns))
+watch(state.columns, x => saveStorage('columns', x))
 
 function colToMet(col) {
   return col.substr(col.lastIndexOf(':') + 1)

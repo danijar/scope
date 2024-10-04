@@ -210,7 +210,7 @@ function toggleLogScaleX() {
 .content { height: 100%; width: 100%; overflow: hidden; }
 
 .chart { flex: 1 1 100%; position: relative; overflow: hidden; }
->>> .reset-zoom { display: none; }
+:deep(.reset-zoom) { display: none; }
 
 .legend { flex: 0 0 content; max-height: 40%; width: 100%; display: flex; flex-direction: column; overflow: auto; margin: 1.5rem 0 0; }
 .entry { width: 100%; display: flex; align-items: center; margin-bottom: .5rem; }
