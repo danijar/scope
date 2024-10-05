@@ -30,12 +30,10 @@ watch(() => state.selected, () => {
 
 const matches = computed(() => {
   let values = [...props.items]
-  if (state.pattern != '') {
-    const regex = new RegExp(state.pattern, 'g')
-    values = values.filter(x => regex.test(x))
-  }
-  values = values.filter(x => x)
-  return values.reverse()
+  if (state.pattern == '')
+    return values
+  // RegExp objects are stateful and can only be used once.
+  return values.filter(x => (new RegExp(state.pattern, 'g')).test(x))
 })
 
 const selectedDisplay = computed(() => {
@@ -48,12 +46,10 @@ const matchesDisplay = computed(() => {
 
 function select(item) {
   state.selected.add(item)
-  emit('select', item)
 }
 
 function unselect(item) {
   state.selected.delete(item)
-  emit('unselect', item)
 }
 
 function selectAll() {
@@ -96,7 +92,7 @@ function unselectAll() {
         <div>{{ item }}</div>
       </li>
     </ul>
-    <ul v-if="matchesDisplay.length" >
+    <ul v-if="matchesDisplay.length">
       <li v-for="item in matchesDisplay" @click="select(item)" class="matched">
         <span class="icon">check_box_outline_blank</span>
         <div>{{ item }}</div>
