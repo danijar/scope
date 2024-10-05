@@ -45,9 +45,12 @@ class FileSystem:
 
   def open(self, path):
     if args.cat:
-      return io.BytesIO(self.read(path))
+      buffer = self.read(path)
+      return io.BytesIO(buffer), len(buffer)
     else:
-      return elements.Path(path).open('rb')
+      path = elements.Path(path)
+      size = path.blob.size if hasattr(path, 'blob') else None
+      return path.open('rb'), size
 
 fs = FileSystem()
 
@@ -114,11 +117,11 @@ def get_file(fileid: str):
     return {'text': text}
 
   elif ext in ('mp4', 'webm'):
-    fp = fs.open(path)
+    fp, size = fs.open(path)
     fp.seek(0)
     def iterfile():
-      if hasattr(fp, 'blob'):
-        remaining = fp.blob.size
+      if size:
+        remaining = size
         while remaining > 0:
           chunk = fp.read(min(128 * 1024, remaining))
           remaining -= len(chunk)
@@ -172,4 +175,5 @@ def find_runs(folder, workers=32):
 
 
 if __name__ == '__main__':
-  uvicorn.run('__main__:app', host='0.0.0.0', port=args.port, reload=True)
+  # uvicorn.run('__main__:app', host='0.0.0.0', port=args.port, reload=True)
+  uvicorn.run('__main__:app', host='0.0.0.0', port=args.port, reload=False, workers=64)
