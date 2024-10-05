@@ -41,8 +41,17 @@ const selectedDisplay = computed(() => {
 })
 
 const matchesDisplay = computed(() => {
-  return [...matches.value].filter(x => !state.selected.has(x))
+  return [...matches.value]
+    .filter(x => !state.selected.has(x))
+    .sort((a, b) => a.localeCompare(b))
 })
+
+function displayItem(name) {
+  return name
+    .replace(/_/g, '_<wbr>')
+    .replace(/\./g, '<wbr>.')
+    .replace(/:/g, ':<br>')
+}
 
 function select(item) {
   state.selected.add(item)
@@ -89,13 +98,15 @@ function unselectAll() {
     <ul v-if="selectedDisplay.length">
       <li v-for="item in selectedDisplay" @click="unselect(item)" class="selected">
         <span class="icon">check_box</span>
-        <div>{{ item }}</div>
+        <!-- <div>{{ displayItem(item) }}</div> -->
+        <div v-html="displayItem(item)"></div>
       </li>
     </ul>
     <ul v-if="matchesDisplay.length">
       <li v-for="item in matchesDisplay" @click="select(item)" class="matched">
         <span class="icon">check_box_outline_blank</span>
-        <div>{{ item }}</div>
+        <!-- <div>{{ displayItem(item) }}</div> -->
+        <div v-html="displayItem(item)"></div>
       </li>
     </ul>
   </div>
@@ -118,8 +129,8 @@ input:focus { outline: none; }
 .list { flex: 1 1 content; overflow: scroll; }
 ul { list-style: none; padding: 0; margin: 0 0 .5rem; }
 
-li { display: flex; align-items: center; cursor: pointer; line-height: 0.95; font-family: monospace; border-radius: .2rem; }
-li div { display: 1 1 content; display: inline-block; padding: .2rem; line-height: 0.95; white-space: nowrap; word-break: break-all; }
+li { display: flex; align-items: center; cursor: pointer; line-height: 1; font-family: monospace; border-radius: .2rem; }
+li div { display: 1 1 content; padding: .3rem; white-space: nowrap; }
 li:hover { background: #eee; }
 
 /*
