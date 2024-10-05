@@ -41,3 +41,6 @@
 .layoutCol { display: flex; overflow: hidden; flex-direction: column; }
 .layoutRow { display: flex; overflow: hidden; flex-direction: row; }
 .fill { flex: 1 1; }
+
+.v-enter-active, .v-leave-active { transition: opacity 0.5s ease; }
+.v-enter-from, .v-leave-to { opacity: 0; }

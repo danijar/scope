@@ -1,9 +1,11 @@
 <script setup>
+
 import { reactive, computed, watch } from 'vue'
 
 const props = defineProps({
   title: { type: String, default: '' },
   items: { type: Array, required: true },
+  loading: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['select', 'unselect'])
@@ -14,6 +16,13 @@ const state = reactive({
   selected: model.value,
   pattern: '',
 })
+
+// watch(props.items, x => {
+//   const options = new Set(x)
+//   for (const item of [...state.selected])
+//     if (!options.has(item))
+//       state.selected.remove(item)
+// })
 
 watch(state.selected, () => {
   model.value = state.selected
@@ -66,7 +75,12 @@ function unselectAll() {
 
 <template>
 <div class="selector">
-  <h2 v-if="props.title.length">{{ props.title }}</h2>
+  <div class="header layoutRow">
+    <h2 v-if="props.title.length">{{ props.title }}</h2>
+    <Transition>
+      <span v-if="props.loading" class="icon">more_horiz</span>
+    </Transition>
+  </div>
   <div class="inputs layoutRow">
     <label class="layoutRow">
       <span class="icon">search</span>
@@ -95,7 +109,8 @@ function unselectAll() {
 <style scoped>
 .selector { display: flex; flex-direction: column; }
 
-h2 { flex: 0 0 content; margin: 0 .2rem .4rem; font-size: 1.3rem; font-weight: 500; color: #333; }
+.header { flex: 0 0 content; padding-right: 1rem; }
+h2 { flex: 1 0 content; margin: 0 .2rem .4rem; font-size: 1.3rem; font-weight: 500; color: #333; }
 
 .inputs { flex: 0 0 content; align-items: center; padding: 0 .5rem .3rem 0; /* border-bottom: 1px solid #ddd; */ }
 
