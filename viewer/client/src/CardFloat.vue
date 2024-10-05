@@ -85,43 +85,38 @@ function createChart(canvas) {
   })
 }
 
-onMounted(async () => {
+onMounted(() => {
   const canvas = root.value.$el.querySelector('canvas')
   chart[0] = createChart(canvas)
-  loadCols()
+  // updateCols()
 })
 
-async function loadCols() {
-  state.status = 'loading...'
+async function refresh() {
   await Promise.all(props.cols.map(colid => loadCol(colid)))
-  state.status = ''
 }
 
 watch(() => props.cols, () => {
-  for (const colid of props.cols)
-    loadCol(colid)
-  // TODO: We could also keep unselected runs in the state and just filter them
-  // out of the chart rendering. When they get selected again, we can draw them
-  // immediately and also trigger a refresh on them in the background.
+  state.status = 'loading...'
   for (const colid of [...Object.keys(state.cols)])
     if (!props.cols.includes(colid))
       delete state.cols[colid]
-})
-
-async function loadCol(colid, { refresh = false } = {}) {
-  if (colid in state.cols && !refresh)
-    return
-  const result = await (await fetch(`/api/col/${colid}`)).json()
-  const run = colid.substr(0, colid.lastIndexOf(':', colid.lastIndexOf(':') - 1))
-  const data = result.steps.map((step, i) => ({ x: step, y: result.values[i]}))
-  state.cols[colid] = { run: run, data: data }
-  // console.log('loaded', colid)
-}
+  for (const colid of props.cols)
+    if (!(colid in state.cols))
+      loadCol(colid)
+  state.status = ''
+}, { immediate: true })
 
 watch(() => state.cols, () => {
   updateDatasets()
   updateLegend(Number.MAX_VALUE, -Number.MAX_VALUE)
 }, { deep: true })
+
+async function loadCol(colid) {
+  const result = await (await fetch(`/api/col/${colid}`)).json()
+  const run = colid.substr(0, colid.lastIndexOf(':', colid.lastIndexOf(':') - 1))
+  const data = result.steps.map((step, i) => ({ x: step, y: result.values[i]}))
+  state.cols[colid] = { run: run, data: data }
+}
 
 function updateDatasets() {
   const cols = Object.values(state.cols).sort(

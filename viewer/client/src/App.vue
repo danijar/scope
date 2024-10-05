@@ -8,15 +8,12 @@ import CardFloat from './CardFloat.vue'
 import CardVideo from './CardVideo.vue'
 import CardText from './CardText.vue'
 
-const persist = ['expids', 'exps', 'runs', 'cols', 'selExps', 'selRuns', 'selMets']
-
 const state = reactive({
   status: '',
-  columns: loadStorage('columns', [3]),
+  columns: loadStorage('columns', 3),
   expids: loadStorage('expids', []),
   exps: loadStorage('exps', {}),
   runs: loadStorage('runs', {}),
-  cols: loadStorage('cols', {}),
   selExps: loadStorage('selExps', new Set()),
   selRuns: loadStorage('selRuns', new Set()),
   selMets: loadStorage('selMets', new Set()),
@@ -26,12 +23,11 @@ const state = reactive({
 })
 
 watch(() => state.expids, x => saveStorage('expids', x))
-watch(() => state.exps, x => saveStorage('exps', x))
-watch(() => state.runs, x => saveStorage('runs', x))
-watch(() => state.cols, x => saveStorage('cols', x))
-watch(() => state.selExps, x => saveStorage('selExps', x))
-watch(() => state.selRuns, x => saveStorage('selRuns', x))
-watch(() => state.selMets, x => saveStorage('selMets', x))
+watch(() => state.exps, x => saveStorage('exps', x), { deep: true })
+watch(() => state.runs, x => saveStorage('runs', x), { deep: true })
+watch(() => state.selExps, x => saveStorage('selExps', x), { deep: true })
+watch(() => state.selRuns, x => saveStorage('selRuns', x), { deep: true })
+watch(() => state.selMets, x => saveStorage('selMets', x), { deep: true })
 watch(() => state.columns, x => saveStorage('columns', x))
 
 function colToMet(col) {
@@ -62,8 +58,6 @@ const metsOptions = computed(() => {
 const selGroups = computed(() => {
   const groups = []
   for (const met of state.selMets) {
-    // TODO: Turn cols into a reactive container so that cards update when
-    // the run selection changes.
     const cols = []
     const ext = met.substr(met.lastIndexOf('.') + 1)
     for (const runid of state.selRuns)
@@ -73,22 +67,28 @@ const selGroups = computed(() => {
             cols.push(col)
     groups.push({ name: met, ext, ext, cols: cols })
   }
+  console.log(groups)
   return groups
 })
 
+function toggleLayout() {
+  state.columns = state.columns % 5 + 1
+}
+
 onMounted(async () => {
-  loadExps()
+  ensureExps()
 })
 
-async function loadExps() {
-  if (state.exps.length)
+async function ensureExps() {
+  // Replace these ensure...() functions with watchers.
+  if (state.expids.length)
     return
   state.loadingExps = true
   state.expids = (await (await fetch('/api/exps')).json())['exps']
   state.loadingExps = false
 }
 
-async function loadExp(expid) {
+async function ensureExp(expid) {
   if (expid in state.exps)
     return
   state.loadingRuns = true
@@ -96,7 +96,7 @@ async function loadExp(expid) {
   state.loadingRuns = false
 }
 
-async function loadRun(runid) {
+async function ensureRun(runid) {
   if (runid in state.runs)
     return
   state.loadingMets = true
@@ -104,41 +104,21 @@ async function loadRun(runid) {
   state.loadingMets = false
 }
 
-async function refreshAll() {
+async function refresh() {
   state.loadingExps = true
   state.loadingRuns = true
   state.loadingMets = true
-
   state.expids = (await (await fetch('/api/exps')).json())['exps']
-  const expsOptionsSet = new Set(expsOptions.values)
-  for (const selected in state.selExps)
-    if (!expsOptionsSet.has(selected))
-      state.selExps.remove(selected)
-
+  // TODO: Selector should only expose selected items that are still available.
   state.exps = Object.fromEntries(await Promise.all(
     [...state.selExps].map(async expid => (
       [expid, await (await fetch(`/api/exp/${expid}`)).json()]))))
-  const runsOptionsSet = new Set(runsOptions.value)
-  for (const selected in state.selRuns)
-    if (!runsOptionsSet.has(selected))
-      state.selRuns.remove(selected)
-
   state.runs = Object.fromEntries(await Promise.all(
     [...state.selRuns].map(async runid => (
       [runid, await (await fetch(`/api/run/${runid}`)).json()]))))
-  const metsOptionsSet = new Set(metsOptions.value)
-  for (const selected in state.selMets)
-    if (!metsOptionsSet.has(selected))
-      state.selMets.remove(selected)
-
   state.loadingExps = false
   state.loadingRuns = false
   state.loadingMets = false
-
-}
-
-function toggleLayout() {
-  state.columns[0] = state.columns[0] % 5 + 1
 }
 
 </script>
@@ -148,7 +128,7 @@ function toggleLayout() {
   <div class="header layoutRow">
     <h1>Scope</h1>
     <span class="fill"></span>
-    <span class="btn icon" @click="refreshAll">refresh</span>
+    <span class="btn icon" @click="refresh">refresh</span>
     <span class="btn icon" @click="toggleLayout">settings</span>
   </div>
   <div class="content layoutRow">
@@ -175,10 +155,10 @@ function toggleLayout() {
     </div>
     <div class="right layoutCol">
       <Selector
-        :items="expsOptions" v-model="state.selExps" @select="loadExp"
+        :items="expsOptions" v-model="state.selExps" @select="ensureExp"
         :loading="state.loadingExps" title="Experiments" class="selector" />
       <Selector
-        :items="runsOptions" v-model="state.selRuns" @select="loadRun"
+        :items="runsOptions" v-model="state.selRuns" @select="ensureRun"
         :loading="state.loadingRuns" title="Runs" class="selector" />
     </div>
   </div>
@@ -203,7 +183,7 @@ function toggleLayout() {
 
 .selector { flex: 1 1 0; overflow: hidden; padding: 1rem 0 0 1rem; }
 
-.cards { --columns: v-bind(state.columns[0]); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; }
+.cards { --columns: v-bind(state.columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; }
 .card { height: 30rem; max-height: 80vh; border: 1px solid #ddd; }
 
 .status { color: #999; }
