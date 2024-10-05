@@ -24,7 +24,7 @@ const state = reactive({
 //       state.selected.remove(item)
 // })
 
-watch(state.selected, () => {
+watch(() => state.selected, () => {
   model.value = state.selected
 })
 

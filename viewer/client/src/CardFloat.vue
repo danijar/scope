@@ -12,7 +12,7 @@ const props = defineProps({
 
 const state = reactive({
   status: '',
-  cols: [],
+  cols: {},
   legend: [],
 })
 
@@ -93,24 +93,40 @@ onMounted(async () => {
 
 async function loadCols() {
   state.status = 'loading...'
-  const requests = props.cols.map(col => fetch(`/api/col/${col}`))
-  const results = await Promise.all(requests.map(async x => (await x).json()))
-  state.cols = props.cols.map((col, i) => {
-    const result = results[i]
-    const run = col.substr(0, col.lastIndexOf(':', col.lastIndexOf(':') - 1))
-    const data = result.steps.map((step, i) => ({ x: step, y: result.values[i]}))
-    return { run: run, data: data }
-  })
+  await Promise.all(props.cols.map(colid => loadCol(colid)))
   state.status = ''
+}
+
+watch(() => props.cols, () => {
+  for (const colid of props.cols)
+    loadCol(colid)
+  // TODO: We could also keep unselected runs in the state and just filter them
+  // out of the chart rendering. When they get selected again, we can draw them
+  // immediately and also trigger a refresh on them in the background.
+  for (const colid of [...Object.keys(state.cols)])
+    if (!props.cols.includes(colid))
+      delete state.cols[colid]
+})
+
+async function loadCol(colid, { refresh = false } = {}) {
+  if (colid in state.cols && !refresh)
+    return
+  const result = await (await fetch(`/api/col/${colid}`)).json()
+  const run = colid.substr(0, colid.lastIndexOf(':', colid.lastIndexOf(':') - 1))
+  const data = result.steps.map((step, i) => ({ x: step, y: result.values[i]}))
+  state.cols[colid] = { run: run, data: data }
+  // console.log('loaded', colid)
 }
 
 watch(() => state.cols, () => {
   updateDatasets()
   updateLegend(Number.MAX_VALUE, -Number.MAX_VALUE)
-})
+}, { deep: true })
 
 function updateDatasets() {
-  chart[0].data.datasets = state.cols.map((col, i) => ({
+  const cols = Object.values(state.cols).sort(
+    (a, b) => { a.run.localeCompare(b.run )})
+  chart[0].data.datasets = cols.map((col, i) => ({
     label: col.run,
     data: col.data,
     fill: false,
@@ -122,19 +138,16 @@ function updateDatasets() {
 }
 
 function updateLegend(targetStep, targetValue) {
-  const datasets = chart[0].data.datasets
-  const legend = datasets.map(dataset => {
+  state.legend = chart[0].data.datasets.map(dataset => {
     const index = bisectNearestX(dataset.data, targetStep)
     const value = dataset.data[index].y
     const step = dataset.data[index].x
-
     const formattedStep = step.toLocaleString('en-US')
     let formattedValue
     if (0.01 <= Math.abs(value) && Math.abs(value) <= 10000)
       formattedValue = value.toFixed(3)
     else
       formattedValue = value.toExponential(2)
-
     return {
       run: dataset.label,
       color: dataset.borderColor,
@@ -143,15 +156,11 @@ function updateLegend(targetStep, targetValue) {
       formattedStep: formattedStep,
       formattedValue: formattedValue,
     }
-  })
-
-  const legendSorted = legend.sort((a, b) => {
+  }).sort((a, b) => {
     const distA = Math.abs(a.value - targetValue)
     const distB = Math.abs(b.value - targetValue)
     return distA - distB
   })
-
-  state.legend = legendSorted
 }
 
 function bisectNearestX(array, target) {
