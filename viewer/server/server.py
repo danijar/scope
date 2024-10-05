@@ -13,6 +13,7 @@ args = elements.Flags(
     root=os.environ.get('SCOPE_ROOT', ''),
     ls=os.environ.get('SCOPE_LS', ''),
     cat=os.environ.get('SCOPE_CAT', ''),
+    catrange=os.environ.get('SCOPE_CATRANGE', ''),
     port=6008,
 ).parse()
 print(args)

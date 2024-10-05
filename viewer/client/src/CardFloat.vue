@@ -34,10 +34,8 @@ const colors = [
   '#999999',
 ]
 
-onMounted(async () => {
-
-  const canvas = root.value.$el.querySelector('canvas')
-  chart[0] = new Chart(canvas, {
+function createChart(canvas) {
+  return new Chart(canvas, {
     type: 'line',
     data: { datasets: [] },
     options: {
@@ -85,42 +83,43 @@ onMounted(async () => {
       },
     }],
   })
+}
 
+onMounted(async () => {
+  const canvas = root.value.$el.querySelector('canvas')
+  chart[0] = createChart(canvas)
+  loadCols()
+})
+
+async function loadCols() {
   state.status = 'loading...'
-
   const requests = props.cols.map(col => fetch(`/api/col/${col}`))
   const results = await Promise.all(requests.map(async x => (await x).json()))
-  state.cols = props.cols.map(function(col, i) {
+  state.cols = props.cols.map((col, i) => {
     const result = results[i]
-    return {
-      run: col.substr(0, col.lastIndexOf(':', col.lastIndexOf(':') - 1)),
-      steps: result.steps,
-      values: result.values,
-    }
+    const run = col.substr(0, col.lastIndexOf(':', col.lastIndexOf(':') - 1))
+    const data = result.steps.map((step, i) => ({ x: step, y: result.values[i]}))
+    return { run: run, data: data }
   })
-
-  const datasets = []
-
-  let i = 0;
-  for (const col of state.cols) {
-    const data = col.steps.map((step, i) => ({ x: step, y: col.values[i]}))
-    datasets.push({
-      label: col.run,
-      data: data,
-      fill: false,
-      pointRadius: 0,
-      borderColor: colors[i % colors.length],  // TODO
-      borderWidth: 1,
-    })
-    i++
-  }
-
-  chart[0].data.datasets = datasets
-  chart[0].update()
-  updateLegend(0)
-
   state.status = ''
+}
+
+watch(() => state.cols, () => {
+  updateDatasets()
+  updateLegend(Number.MAX_VALUE, -Number.MAX_VALUE)
 })
+
+function updateDatasets() {
+  chart[0].data.datasets = state.cols.map((col, i) => ({
+    label: col.run,
+    data: col.data,
+    fill: false,
+    pointRadius: 0,
+    borderColor: colors[i % colors.length],
+    borderWidth: 1,
+  }))
+  chart[0].update()
+}
 
 function updateLegend(targetStep, targetValue) {
   const datasets = chart[0].data.datasets
