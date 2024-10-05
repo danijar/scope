@@ -69,7 +69,8 @@ onMounted(async () => {
           // TODO: Add delay to compute this less frequently?
           const canvasPos = getRelativePosition(event, chart)
           const dataX = chart.scales.x.getValueForPixel(canvasPos.x)
-          updateLegend(dataX)
+          const dataY = chart.scales.y.getValueForPixel(canvasPos.y)
+          updateLegend(dataX, dataY)
         }
         if (event.type === 'click') {
           const now = Date.now()
@@ -121,10 +122,10 @@ onMounted(async () => {
   state.status = ''
 })
 
-function updateLegend(nearestStep) {
+function updateLegend(targetStep, targetValue) {
   const datasets = chart[0].data.datasets
-  state.legend = datasets.map(dataset => {
-    const index = bisectNearestX(dataset.data, nearestStep)
+  const legend = datasets.map(dataset => {
+    const index = bisectNearestX(dataset.data, targetStep)
     const value = dataset.data[index].y
     const step = dataset.data[index].x
 
@@ -144,6 +145,14 @@ function updateLegend(nearestStep) {
       formattedValue: formattedValue,
     }
   })
+
+  const legendSorted = legend.sort((a, b) => {
+    const distA = Math.abs(a.value - targetValue)
+    const distB = Math.abs(b.value - targetValue)
+    return distA - distB
+  })
+
+  state.legend = legendSorted
 }
 
 function bisectNearestX(array, target) {
