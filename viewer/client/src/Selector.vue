@@ -17,16 +17,16 @@ const state = reactive({
   pattern: '',
 })
 
-// watch(props.items, x => {
-//   const options = new Set(x)
-//   for (const item of [...state.selected])
-//     if (!options.has(item))
-//       state.selected.remove(item)
-// })
-
 watch(() => state.selected, () => {
   model.value = state.selected
 })
+
+watch(() => props.items, () => {
+  const options = new Set(props.items)
+  for (const item of [...state.selected])
+    if (!options.has(item))
+      state.selected.delete(item)
+}, { immediate: true })
 
 const matches = computed(() => {
   let values = [...props.items]
@@ -37,17 +37,14 @@ const matches = computed(() => {
 })
 
 const selectedDisplay = computed(() => {
-  const available = new Set(props.items)
   return [...state.selected]
-    .map(x => ({ item: x, available: available.has(x) }))
-    .sort((a, b) => a.item.localeCompare(b.item))
+    .sort((a, b) => a.localeCompare(b))
 })
 
 const matchesDisplay = computed(() => {
   return [...matches.value]
     .filter(x => !state.selected.has(x))
-    .map(x => ({ item: x }))
-    .sort((a, b) => a.item.localeCompare(b.item))
+    .sort((a, b) => a.localeCompare(b))
 })
 
 function displayItem(name) {
@@ -89,7 +86,7 @@ function unselectAll() {
   <div class="header layoutRow">
     <h2 v-if="props.title.length">{{ props.title }}</h2>
     <Transition>
-      <span v-if="props.loading" class="icon">more_horiz</span>
+      <span v-if="props.loading" class="icon spinner">progress_activity</span>
     </Transition>
   </div>
   <div class="inputs layoutRow">
@@ -101,16 +98,14 @@ function unselectAll() {
     <span class="btn icon" @click="unselectAll" title="Unselect all">close</span>
   </div>
   <div class="list">
-    <ul v-if="selectedDisplay.length">
-      <li v-for="entry in selectedDisplay" @click="unselect(entry.item)" class="{ selected: true, unavailable: !available }">
+    <ul>
+      <li v-for="item in selectedDisplay" @click="unselect(item)" class="selected">
         <span class="icon">check_box</span>
-        <div v-html="displayItem(entry.item)"></div>
+        <div v-html="displayItem(item)"></div>
       </li>
-    </ul>
-    <ul v-if="matchesDisplay.length">
-      <li v-for="entry in matchesDisplay" @click="select(entry.item)" class="matched">
+      <li v-for="item in matchesDisplay" @click="select(item)" class="matched">
         <span class="icon">check_box_outline_blank</span>
-        <div v-html="displayItem(entry.item)"></div>
+        <div v-html="displayItem(item)"></div>
       </li>
     </ul>
   </div>
@@ -122,12 +117,13 @@ function unselectAll() {
 
 .header { flex: 0 0 content; padding-right: 1rem; }
 h2 { flex: 1 0 content; margin: 0 .2rem .4rem; font-size: 1.3rem; font-weight: 500; color: #333; }
+.spinner { color: #999; margin-right: -.2rem; }
 
 .inputs { flex: 0 0 content; align-items: center; padding: 0 .5rem .3rem 0; /* border-bottom: 1px solid #ddd; */ }
 
 label .icon { color: #999; }
-input { flex: 1 1 content; margin: 0 .3rem; padding: .2rem; font-family: monospace; border: none; color: #888; }
-input::placeholder { color: #888; }
+input { flex: 1 1 content; margin: 0 .3rem; padding: .2rem; font-family: monospace; border: none; color: 999; }
+input::placeholder { color: 999; }
 input:focus { outline: none; }
 
 .list { flex: 1 1 content; overflow: scroll; }
@@ -136,13 +132,5 @@ ul { list-style: none; padding: 0; margin: 0 0 .5rem; }
 li { display: flex; align-items: center; cursor: pointer; line-height: 1; font-family: monospace; border-radius: .2rem; }
 li div { display: 1 1 content; padding: .3rem; white-space: nowrap; }
 li:hover { background: #eee; }
-.unavailable { color: #aaa; }
-
-/*
-.selected { margin: .3rem 0; }
-.selected span { background: #ddd; }
-.selected:hover span { background: #ccc; }
-.matched:hover span { background: #eee; }
-*/
 
 </style>

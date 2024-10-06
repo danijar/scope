@@ -44,3 +44,12 @@
 
 .v-enter-active, .v-leave-active { transition: opacity 0.5s ease; }
 .v-enter-from, .v-leave-to { opacity: 0; }
+
+.spinner {
+  height: 24px; width: 24px;
+  animation: spinner 1.5s infinite linear running;
+}
+@keyframes spinner {
+    from { transform:rotate(0deg); }
+    to { transform:rotate(360deg); }
+}

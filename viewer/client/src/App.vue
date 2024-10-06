@@ -1,7 +1,8 @@
 <script setup>
 
-import { reactive, computed, watch, onMounted, ref } from 'vue'
+import { reactive, computed, watch, onMounted, ref, toRef } from 'vue'
 import { saveStorage, loadStorage } from './storage.js'
+import * as api from './api.js'
 import Selector from './Selector.vue'
 import Card from './Card.vue'
 import CardFloat from './CardFloat.vue'
@@ -9,7 +10,6 @@ import CardVideo from './CardVideo.vue'
 import CardText from './CardText.vue'
 
 const state = reactive({
-  status: '',
   columns: loadStorage('columns', 3),
   expids: loadStorage('expids', []),
   exps: loadStorage('exps', {}),
@@ -17,10 +17,15 @@ const state = reactive({
   selExps: loadStorage('selExps', new Set()),
   selRuns: loadStorage('selRuns', new Set()),
   selMets: loadStorage('selMets', new Set()),
-  loadingExps: false,
-  loadingRuns: false,
-  loadingMets: false,
 })
+
+const loadingExps = ref(false)
+const loadingRuns = ref(false)
+const loadingMets = ref(false)
+
+///////////////////////////////////////////////////////////////////////////////
+// Persistence
+///////////////////////////////////////////////////////////////////////////////
 
 watch(() => state.expids, x => saveStorage('expids', x))
 watch(() => state.exps, x => saveStorage('exps', x), { deep: true })
@@ -30,12 +35,44 @@ watch(() => state.selRuns, x => saveStorage('selRuns', x), { deep: true })
 watch(() => state.selMets, x => saveStorage('selMets', x), { deep: true })
 watch(() => state.columns, x => saveStorage('columns', x))
 
-function colToMet(col) {
-  return col.substr(col.lastIndexOf(':') + 1)
+///////////////////////////////////////////////////////////////////////////////
+// Fetching
+///////////////////////////////////////////////////////////////////////////////
+
+onMounted(async () => {
+  if (!state.expids.length)
+    api.getExpids(x => state.expids = x, loadingExps)
+})
+
+watch(() => state.selExps, () => {
+  const missing = [...state.selExps].filter(expid => !(expid in state.exps))
+  api.getExps(missing, x => state.exps[x.id] = x, loadingRuns)
+}, { deep: true, immediate: true })
+
+watch(() => state.selRuns, async () => {
+  const missing = [...state.selRuns].filter(runid => !(runid in state.runs))
+  await api.getRuns(missing, x => state.runs[x.id] = x, loadingMets)
+}, { deep: true, immediate: true })
+
+async function refresh() {
+  for (const expid of Object.keys(state.exps))
+    if (!state.selExps.has(expid))
+      delete state.exps[expid]
+  for (const runid of Object.keys(state.runs))
+    if (!state.selRuns.has(runid))
+      delete state.runs[runid]
+  api.getExpids(x => state.expids = x, loadingExps)
+  api.getExps([...state.selExps], x => state.exps[x.id] = x, loadingRuns)
+  api.getRuns([...state.selRuns], x => state.runs[x.id] = x, loadingMets)
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Display
+///////////////////////////////////////////////////////////////////////////////
+
 const expsOptions = computed(() => {
-  return [...state.expids].sort()
+  return [...state.expids]
+    .sort((a, b) => a.localeCompare(b))
 })
 
 const runsOptions = computed(() => {
@@ -43,8 +80,8 @@ const runsOptions = computed(() => {
   for (const expid of state.selExps)
     if (expid in state.exps)
       options = options.concat(state.exps[expid]['runs'])
-  return options
-})
+  return options.sort((a, b) => a.localeCompare(b))
+}, { deep: true })
 
 const metsOptions = computed(() => {
   const options = new Set()
@@ -52,12 +89,11 @@ const metsOptions = computed(() => {
     if (runid in state.runs)
       for (const col of state.runs[runid]['cols'])
         options.add(colToMet(col))
-  return [...options].sort()
-})
+  return [...options].sort((a, b) => a.localeCompare(b))
+}, { deep: true })
 
-const selGroups = computed(() => {
-  const groups = []
-  for (const met of state.selMets) {
+const cardsData = computed(() => {
+  const cards = [...state.selMets].map(met => {
     const cols = []
     const ext = met.substr(met.lastIndexOf('.') + 1)
     for (const runid of state.selRuns)
@@ -65,60 +101,22 @@ const selGroups = computed(() => {
         for (const col of state.runs[runid]['cols'])
           if (colToMet(col) === met)
             cols.push(col)
-    groups.push({ name: met, ext, ext, cols: cols })
-  }
-  console.log(groups)
-  return groups
-})
+    return { name: met, ext, ext, cols: cols }
+  })
+  return cards
+
+}, { deep: true })
+
+///////////////////////////////////////////////////////////////////////////////
+// Other
+///////////////////////////////////////////////////////////////////////////////
+
+function colToMet(col) {
+  return col.substr(col.lastIndexOf(':') + 1)
+}
 
 function toggleLayout() {
   state.columns = state.columns % 5 + 1
-}
-
-onMounted(async () => {
-  ensureExps()
-})
-
-async function ensureExps() {
-  // Replace these ensure...() functions with watchers.
-  if (state.expids.length)
-    return
-  state.loadingExps = true
-  state.expids = (await (await fetch('/api/exps')).json())['exps']
-  state.loadingExps = false
-}
-
-async function ensureExp(expid) {
-  if (expid in state.exps)
-    return
-  state.loadingRuns = true
-  state.exps[expid] = await (await fetch(`/api/exp/${expid}`)).json()
-  state.loadingRuns = false
-}
-
-async function ensureRun(runid) {
-  if (runid in state.runs)
-    return
-  state.loadingMets = true
-  state.runs[runid] = await (await fetch(`/api/run/${runid}`)).json()
-  state.loadingMets = false
-}
-
-async function refresh() {
-  state.loadingExps = true
-  state.loadingRuns = true
-  state.loadingMets = true
-  state.expids = (await (await fetch('/api/exps')).json())['exps']
-  // TODO: Selector should only expose selected items that are still available.
-  state.exps = Object.fromEntries(await Promise.all(
-    [...state.selExps].map(async expid => (
-      [expid, await (await fetch(`/api/exp/${expid}`)).json()]))))
-  state.runs = Object.fromEntries(await Promise.all(
-    [...state.selRuns].map(async runid => (
-      [runid, await (await fetch(`/api/run/${runid}`)).json()]))))
-  state.loadingExps = false
-  state.loadingRuns = false
-  state.loadingMets = false
 }
 
 </script>
@@ -135,36 +133,34 @@ async function refresh() {
     <div class="left layoutCol">
       <Selector
         :items="metsOptions" v-model="state.selMets"
-        :loading="state.loadingMets" title="Metrics" class="selector" />
+        :loading="loadingMets" title="Metrics" class="selector" />
     </div>
     <div class="center">
       <div class="cards">
-        <template v-for="group in selGroups" :key="group.met">
+        <template v-for="card in cardsData" :key="card.met">
           <CardFloat
-            v-if="group.ext == 'float'"
-            :name="group.name" :cols="group.cols" class="card" />
+            v-if="card.ext == 'float'"
+            :name="card.name" :cols="card.cols" class="card" />
           <CardText
-            v-else-if="group.ext == 'txt'"
-            :name="group.name" :cols="group.cols" class="card" />
+            v-else-if="card.ext == 'txt'"
+            :name="card.name" :cols="card.cols" class="card" />
           <CardVideo
-            v-else-if="['mp4', 'webm'].includes(group.ext)"
-            :name="group.name" :cols="group.cols" class="card" />
-          <Card v-else :name="group.name" class="card">Unknown metric type: {{ group.ext }}</Card>
+            v-else-if="['mp4', 'webm'].includes(card.ext)"
+            :name="card.name" :cols="card.cols" class="card" />
+          <Card v-else :name="card.name" class="card">
+            Unknown metric type: {{ card.ext }}</Card>
         </template>
       </div>
     </div>
     <div class="right layoutCol">
       <Selector
-        :items="expsOptions" v-model="state.selExps" @select="ensureExp"
-        :loading="state.loadingExps" title="Experiments" class="selector" />
+        :items="expsOptions" v-model="state.selExps"
+        :loading="loadingExps" title="Experiments" class="selector" />
       <Selector
-        :items="runsOptions" v-model="state.selRuns" @select="ensureRun"
-        :loading="state.loadingRuns" title="Runs" class="selector" />
+        :items="runsOptions" v-model="state.selRuns"
+        :loading="loadingRuns" title="Runs" class="selector" />
     </div>
   </div>
-  <!-- <div class="footer layoutRow"> -->
-  <!--   <span class="status">{{ state.status }}</span> -->
-  <!-- </div> -->
 </div>
 </template>
 
@@ -185,7 +181,5 @@ async function refresh() {
 
 .cards { --columns: v-bind(state.columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; }
 .card { height: 30rem; max-height: 80vh; border: 1px solid #ddd; }
-
-.status { color: #999; }
 
 </style>
