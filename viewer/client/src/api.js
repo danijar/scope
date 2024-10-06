@@ -48,4 +48,7 @@ async function getCol(colid) {
   return col
 }
 
+export async function getFileUrl(fileid) {
+  return `/api/file/${fileid}`
+}
 

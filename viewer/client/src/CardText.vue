@@ -2,6 +2,7 @@
 
 import { reactive, computed, watch, onMounted } from 'vue'
 import Card from './Card.vue'
+import * as api from './api.js'
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -10,37 +11,60 @@ const props = defineProps({
 
 const state = reactive({
   status: '',
-  cols: [],
+  cols: {},
 })
 
-onMounted(async () => {
-  state.status = 'loading...'
-  const requests = props.cols.map(col => fetch(`/api/col/${col}`))
-  const results = await Promise.all(requests.map(async x => (await x).json()))
-  state.cols = props.cols.map(function(col, i) {
-    const result = results[i]
-    const lastValue = result.values[result.values.length - 1]
-    return {
-      run: col.substr(0, col.lastIndexOf(':', col.lastIndexOf(':') - 1)),
-      url: `/api/file/${lastValue}`,
-      steps: result.steps,
-      values: result.values,
-      text: 'loading...',
+// TODO: Figure out how to abstract this logic out into the API file.
+const inflight = new Set()
+
+function refresh() {
+  api.getCols(props.cols, storeCol)
+}
+
+watch(() => props.cols, () => {
+  for (const colid of Object.keys(state.cols))
+    if (!props.cols.includes(colid))
+      delete state.cols[colid]
+  const missing = [...props.cols]
+    .filter(x => !(x in state.cols))
+    .filter(x => !inflight.has(x))
+  missing.forEach(x => inflight.add(x))
+  api.getCols(missing, storeCol)
+}, { immediate: true })
+
+watch(() => state.cols, () => {
+  for (const col of Object.values(state.cols)) {
+    if (col === null) continue
+    if (col.fileidSelected !== col.fileidFetching) {
+      col.fileidFetching = col.fileidSelected
+      fetch(`/api/file/${col.fileidSelected}`).then(async response => {
+        col.text = (await ((await response).json()))['text'].replace(/\n/g, '<br>')
+      })
     }
-  })
-  const requests2 = state.cols.map(col => fetch(col.url))
-  const results2 = await Promise.all(requests2.map(async x => (await x).json()))
-  state.cols.map(function(col, i) {
-    col.text = results2[i]['text'].replace(/\n/g, '<br>')
-  })
-  state.status = ''
+  }
+}, { deep: true })
+
+function storeCol(col) {
+  const lastValue = col.values[col.values.length - 1]
+  col.text = 'loading...'
+  col.fileidSelected = lastValue
+  col.fileidFetching = null
+  if (props.cols.includes(col.id))
+    state.cols[col.id] = col
+  inflight.delete(col.id)
+}
+
+const displayCols = computed(() => {
+  return Object.values(state.cols)
+    .filter(x => x !== null)
+    .sort((a, b) => a.run.localeCompare(b.run))
 })
 
 </script>
 
 <template>
 <Card :name="props.name" :status="state.status">
-  <div v-for="col in state.cols" class="col">
+  <div v-for="col in displayCols" class="col">
     <h3> {{ col.run }}</h3>
     <span class="count">Count: {{ col.steps.length }}</span>
     <span class="step">Step: {{ col.steps[col.steps.length - 1] }}</span><br>
