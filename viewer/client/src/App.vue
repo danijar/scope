@@ -39,7 +39,7 @@ watch(() => state.columns, x => saveStorage('columns', x))
 // Fetching
 ///////////////////////////////////////////////////////////////////////////////
 
-onMounted(async () => {
+onMounted(() => {
   if (!state.expids.length)
     api.getExpids(x => state.expids = x, loadingExps)
 })
@@ -49,12 +49,12 @@ watch(() => state.selExps, () => {
   api.getExps(missing, x => state.exps[x.id] = x, loadingRuns)
 }, { deep: true, immediate: true })
 
-watch(() => state.selRuns, async () => {
+watch(() => state.selRuns, () => {
   const missing = [...state.selRuns].filter(runid => !(runid in state.runs))
-  await api.getRuns(missing, x => state.runs[x.id] = x, loadingMets)
+  api.getRuns(missing, x => state.runs[x.id] = x, loadingMets)
 }, { deep: true, immediate: true })
 
-async function refresh() {
+function refresh() {
   for (const expid of Object.keys(state.exps))
     if (!state.selExps.has(expid))
       delete state.exps[expid]

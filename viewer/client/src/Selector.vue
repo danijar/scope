@@ -21,13 +21,6 @@ watch(() => state.selected, () => {
   model.value = state.selected
 })
 
-watch(() => props.items, () => {
-  const options = new Set(props.items)
-  for (const item of [...state.selected])
-    if (!options.has(item))
-      state.selected.delete(item)
-}, { immediate: true })
-
 const matches = computed(() => {
   let values = [...props.items]
   if (state.pattern == '')
@@ -37,8 +30,10 @@ const matches = computed(() => {
 })
 
 const selectedDisplay = computed(() => {
+  const optionsSet = new Set(props.items)
   return [...state.selected]
-    .sort((a, b) => a.localeCompare(b))
+    .map(x => ({ item: x, available: optionsSet.has(x) }))
+    .sort((a, b) => a.item.localeCompare(b.item))
 })
 
 const matchesDisplay = computed(() => {
@@ -99,9 +94,9 @@ function unselectAll() {
   </div>
   <div class="list">
     <ul>
-      <li v-for="item in selectedDisplay" @click="unselect(item)" class="selected">
+      <li v-for="entry in selectedDisplay" @click="unselect(entry.item)" :class="{ selected: true, unavailable: !entry.available }">
         <span class="icon">check_box</span>
-        <div v-html="displayItem(item)"></div>
+        <div v-html="displayItem(entry.item)"></div>
       </li>
       <li v-for="item in matchesDisplay" @click="select(item)" class="matched">
         <span class="icon">check_box_outline_blank</span>
@@ -132,5 +127,7 @@ ul { list-style: none; padding: 0; margin: 0 0 .5rem; }
 li { display: flex; align-items: center; cursor: pointer; line-height: 1; font-family: monospace; border-radius: .2rem; }
 li div { display: 1 1 content; padding: .3rem; white-space: nowrap; }
 li:hover { background: #eee; }
+
+.unavailable { color: #999; }
 
 </style>

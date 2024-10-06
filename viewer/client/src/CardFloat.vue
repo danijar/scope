@@ -2,6 +2,7 @@
 
 import { reactive, computed, watch, onMounted, useTemplateRef } from 'vue'
 import Card from './Card.vue'
+import * as api from './api.js'
 import { Chart } from 'chart.js'
 import { getRelativePosition } from 'chart.js/helpers'
 
@@ -91,36 +92,34 @@ onMounted(() => {
   // updateCols()
 })
 
-async function refresh() {
-  await Promise.all(props.cols.map(colid => loadCol(colid)))
+function refresh() {
+  api.getCols(props.cols, storeCol)
 }
 
 watch(() => props.cols, () => {
-  state.status = 'loading...'
-  for (const colid of [...Object.keys(state.cols)])
+  // TODO: Exclude missing that are already in the process of being loaded!
+  for (const colid of Object.keys(state.cols))
     if (!props.cols.includes(colid))
       delete state.cols[colid]
-  for (const colid of props.cols)
-    if (!(colid in state.cols))
-      loadCol(colid)
-  state.status = ''
+  api.getCols(props.cols, storeCol)
 }, { immediate: true })
+
+function storeCol(col) {
+  const data = col.steps.map((step, i) => ({ x: step, y: col.values[i]}))
+  col.data = data
+  // TODO: col = shallowRef(col)
+  if (props.cols.includes(col.id))
+    state.cols[col.id] = col
+}
 
 watch(() => state.cols, () => {
   updateDatasets()
   updateLegend(Number.MAX_VALUE, -Number.MAX_VALUE)
 }, { deep: true })
 
-async function loadCol(colid) {
-  const result = await (await fetch(`/api/col/${colid}`)).json()
-  const run = colid.substr(0, colid.lastIndexOf(':', colid.lastIndexOf(':') - 1))
-  const data = result.steps.map((step, i) => ({ x: step, y: result.values[i]}))
-  state.cols[colid] = { run: run, data: data }
-}
-
 function updateDatasets() {
-  const cols = Object.values(state.cols).sort(
-    (a, b) => { a.run.localeCompare(b.run )})
+  const cols = Object.values(state.cols)
+    .sort((a, b) => { a.run.localeCompare(b.run) })
   chart[0].data.datasets = cols.map((col, i) => ({
     label: col.run,
     data: col.data,
