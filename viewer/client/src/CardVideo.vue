@@ -1,6 +1,7 @@
 <script setup>
 
-import { reactive, computed, watch, onMounted, useTemplateRef } from 'vue'
+import { reactive, computed, watch, ref, onMounted, useTemplateRef } from 'vue'
+import store from './store.js'
 import Card from './Card.vue'
 
 const props = defineProps({
@@ -8,42 +9,47 @@ const props = defineProps({
   cols: { type: Array, required: true },
 })
 
-const state = reactive({
-  status: '',
-  cols: [],
-  playing: false,
+const cols = computed(() => {
+  return props.cols
+    .filter(colid => colid in store.availableCols.value)
+    .sort()
+    .map(colid => store.availableCols.value[colid])
 })
+
+const loading = computed(() => {
+  return props.cols
+    .filter(colid => store.pendingCols.value.has(colid))
+    .length > 0
+})
+
+const entries = computed(() => {
+  return cols.value.map(col => {
+    const lastValue = col.values[col.values.length - 1]
+    return {
+      run: col.run,
+      url: `/api/file/${lastValue}`,
+      steps: col.steps,
+      values: col.values,
+    }
+  })
+})
+
+const playing = ref(false)
+const origSize = ref(false)
 
 const root = useTemplateRef('root')
 
-onMounted(async () => {
-  state.status = 'loading...'
-  const requests = props.cols.map(col => fetch(`/api/col/${col}`))
-  const results = await Promise.all(requests.map(async x => (await x).json()))
-  state.cols = props.cols.map(function(col, i) {
-    const result = results[i]
-    const lastValue = result.values[result.values.length - 1]
-    return {
-      run: col.substr(0, col.lastIndexOf(':', col.lastIndexOf(':') - 1)),
-      url: `/api/file/${lastValue}`,
-      steps: result.steps,
-      values: result.values,
-    }
-  })
-  state.status = ''
-})
-
 function togglePlayAll() {
   const videos = [...root.value.$el.querySelectorAll('video')]
-  if (state.playing)
+  if (playing.value)
     videos.map(x => x.pause())
   else
     videos.map(x => x.play())
-  state.playing = !state.playing
+  playing.value = !playing.value
 }
 
 function stopAll() {
-  state.playing = false
+  playing.value = false
   const elements = [...root.value.$el.querySelectorAll('video')]
   elements.map(x => {
     x.pause()
@@ -51,24 +57,30 @@ function stopAll() {
   })
 }
 
+function toggleFullsize() {
+  origSize.value = !origSize.value
+}
+
 </script>
 
 <template>
-<Card :name="props.name" :status="state.status" ref="root">
+<Card :name="props.name" :loading="loading" :scrollX="origSize" :scrollY="true" ref="root">
 
   <template #buttons>
-    <span class="btn icon" @click="togglePlayAll" v-if="!state.playing" title="Play all">play_arrow</span>
-    <span class="btn icon" @click="togglePlayAll" v-if="state.playing" title="Pause all">pause</span>
+    <span class="btn icon" @click="togglePlayAll" v-if="!playing" title="Play all">play_arrow</span>
+    <span class="btn icon" @click="togglePlayAll" v-if="playing" title="Pause all">pause</span>
     <span class="btn icon" @click="stopAll" title="Stop all">stop</span>
+    <span class="btn icon" @click="toggleFullsize" v-if="!origSize" title="Original size">zoom_in</span>
+    <span class="btn icon" @click="toggleFullsize" v-if="origSize" title="Automatic size">zoom_out</span>
   </template>
 
   <template #default>
-    <div v-for="col in state.cols" class="col">
-      <h3> {{ col.run }}</h3>
-      <span class="count">Count: {{ col.steps.length }}</span>
-      <span class="step">Step: {{ col.steps[col.steps.length - 1] }}</span><br>
-      <video controls loop v-if="col.steps.length">
-        <source :src="col.url">
+    <div v-for="entry in entries" class="entry" :class="{ origSize }">
+      <h3> {{ entry.run }}</h3>
+      <span class="count">Count: {{ entry.steps.length }}</span>
+      <span class="step">Step: {{ entry.steps[entry.steps.length - 1] }}</span><br>
+      <video controls loop v-if="entry.steps.length">
+        <source :src="entry.url">
       </video>
     </div>
   </template>
@@ -78,11 +90,14 @@ function stopAll() {
 
 <style scoped>
 
-.col { margin: 1rem 0 0; }
-.col:first-child { margin-top: 0 }
+.entry { margin: 1rem 0 0; }
+.entry:first-child { margin-top: 0 }
 
-h3 { margin: 0; }
-video { max-width: 100%; max-height: 25rem; /* 15rem */ }
+h3 { margin: 0; word-break: break-all; }
+
+video { max-width: 100%; max-height: 25rem; }
+
+.origSize video { max-width: inherit; max-height: inherit; }
 
 .count, .step { display: inline-block; margin: .2rem .5rem .2rem 0; }
 

@@ -63,7 +63,7 @@ const displayCols = computed(() => {
 </script>
 
 <template>
-<Card :name="props.name" :status="state.status">
+<Card :name="props.name" :status="state.status" :scrollX="false" :scrollY="true">
   <div v-for="col in displayCols" class="col">
     <h3> {{ col.run }}</h3>
     <span class="count">Count: {{ col.steps.length }}</span>
@@ -78,7 +78,7 @@ const displayCols = computed(() => {
 .col { margin: 1rem 0 0; }
 .col:first-child { margin-top: 0 }
 
-h3 { margin: 0; }
+h3 { margin: 0; word-break: break-all; }
 pre { margin: .3rem 0 0; padding: .3rem; font-family: monospace; background: #eee; color: #444; border-radius: .2rem; overflow: auto; }
 
 .count, .step { display: inline-block; margin: .2rem .5rem .2rem 0; }

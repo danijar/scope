@@ -171,7 +171,7 @@ function bisectNearest(array, target) {
 </script>
 
 <template>
-  <Card :name="props.name" :loading="loading" ref="root">
+  <Card :name="props.name" :loading="loading" :scrollX="false" :scrollY="false" ref="root">
     <template #default>
       <div class="content layoutCol">
         <div ref="chart" class="chart">

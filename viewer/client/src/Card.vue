@@ -2,11 +2,11 @@
 
 import { reactive, computed, watch, onMounted } from 'vue'
 
-// const emit = defineEmits(['resize'])
-
 const props = defineProps({
   name: { type: String, required: true },
   loading: { type: Boolean, default: false },
+  scrollX: { type: Boolean, default: false },
+  scrollY: { type: Boolean, default: true },
 })
 
 const state = reactive({
@@ -15,12 +15,7 @@ const state = reactive({
 
 function toggleZoom() {
   state.zoom = !state.zoom
-  // emit('resize')
 }
-
-// watch(state.zoom, (zoom) => {
-//   emit('resize')
-// })
 
 </script>
 
@@ -38,16 +33,22 @@ function toggleZoom() {
       <span class="btn icon" @click="toggleZoom" title="Fullscreen">fullscreen</span>
     </div>
   </div>
-  <div class="content">
+  <div class="content" :class="{ scrollX, scrollY }">
     <slot></slot>
   </div>
 </div>
 </template>
 
 <style scoped>
-.card { padding: 1rem 0; background: white; border-radius: .2rem; }
-.header { flex: 0 0 content; display: flex; padding: 0 1rem 1rem; }
-.content { flex: 1 1 content; width: 100%; overflow-x: hidden; overflow-y: auto; padding: 0 1rem; }
+.card { padding: 1rem 0 0; background: white; border-radius: .2rem; }
+.header { flex: 0 0 content; display: flex; margin: 0 1rem; }
+.content { flex: 1 1 content; margin: 1rem; overflow: hidden; }
+
+/* .scrollX { overflow-x: auto; } */
+/* .scrollY { overflow-y: auto; } */
+
+.scrollX { overflow-x: scroll; margin-bottom: 0; padding-bottom: 1rem; }
+.scrollY { overflow-y: auto; margin-right: 0; padding-right: 1rem; }
 
 h2 { flex: 1 1 content; margin: 0; }
 .buttons { flex: 0 0 content; margin: -.3rem; margin-left: 0; }
