@@ -143,12 +143,12 @@ function unselectAll() {
 .selector { display: flex; flex-direction: column; }
 
 .header { flex: 0 0 content; padding-right: 1rem; }
-h2 { flex: 1 0 content; margin: 0 .2rem .4rem; font-size: 1.3rem; font-weight: 500; color: #333; }
-.spinner { color: #999; margin-right: -.2rem; }
+h2 { flex: 1 0 content; margin: 0 .2rem .4rem; font-size: 1.3rem; font-weight: 500; color: var(--fg2); }
+.spinner { color: var(--fg3); margin-right: -.2rem; }
 
-.inputs { flex: 0 0 content; align-items: center; padding: 0 .5rem .3rem 0; /* border-bottom: 1px solid #ddd; */ }
+.inputs { flex: 0 0 content; align-items: center; padding: 0 .5rem .3rem 0; }
 
-label .icon { color: #999; }
+label .icon { color: var(--fg3); }
 input { flex: 1 1 content; margin: 0 .3rem; padding: .2rem; font-family: monospace; border: none; color: 999; }
 input::placeholder { color: 999; }
 input:focus { outline: none; }
@@ -158,8 +158,8 @@ ul { list-style: none; padding: 0; margin: 0 0 .5rem; }
 
 li { display: flex; align-items: center; cursor: pointer; line-height: 1; font-family: monospace; border-radius: .2rem; }
 li div { display: 1 1 content; padding: .3rem; white-space: nowrap; }
-li:hover { background: #eee; }
+li:hover { background: var(--bg2); }
 
-.missing { color: #999; }
+.missing { color: var(--fg3); }
 
 </style>

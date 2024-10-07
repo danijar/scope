@@ -67,7 +67,7 @@ watch(() => entries, () => {
 .entry:first-child { margin-top: 0 }
 
 h3 { margin: 0; word-break: break-all; }
-pre { margin: .3rem 0 0; padding: .3rem; font-family: monospace; background: #eee; color: #444; border-radius: .2rem; overflow: auto; }
+pre { margin: .3rem 0 0; padding: .3rem; font-family: monospace; background: var(--bg2); color: var(--fg2); border-radius: .2rem; overflow: auto; }
 
 .count, .step { display: inline-block; margin: .2rem .5rem .2rem 0; }
 

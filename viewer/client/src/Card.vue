@@ -40,7 +40,7 @@ function toggleZoom() {
 </template>
 
 <style scoped>
-.card { padding: 1rem 0 0; background: white; border-radius: .2rem; }
+.card { padding: 1rem 0 0; background: var(--bg1); border-radius: .2rem; }
 .header { flex: 0 0 content; display: flex; margin: 0 1rem; }
 .content { flex: 1 1 content; margin: 1rem; overflow: hidden; }
 

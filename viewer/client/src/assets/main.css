@@ -32,10 +32,10 @@
   padding: .3rem;
   border-radius: .3rem;
   transition: background-color .1s;
-  color: #333;
+  color: var(--fg2);
 }
-.btn:hover { background: #eee; }
-.btn:active { background: #ddd; }
+.btn:hover { background: var(--bg2); }
+.btn:active { background: var(--bg3); }
 .btn + .btn { margin-left: .1rem; }
 
 .layoutCol { display: flex; overflow: hidden; flex-direction: column; }
@@ -53,3 +53,26 @@
     from { transform:rotate(0deg); }
     to { transform:rotate(360deg); }
 }
+
+.app {
+  --bg1: #fff;
+  --bg2: #eee;
+  --bg3: #ddd;
+  --fg1: #000;
+  --fg2: #333;
+  --fg3: #999;
+}
+
+.app.dark {
+  color-scheme: dark;
+  --fg1: #eee;
+  --fg2: #ccc;
+  --fg3: #aaa;
+  --bg1: #111;
+  --bg2: #000;
+  --bg3: #222;
+}
+
+.dark .logo { filter: invert(); }
+.dark .btn:hover { background: var(--bg3); }
+.dark .btn:active { background: var(--bg2); }
