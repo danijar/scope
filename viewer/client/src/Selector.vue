@@ -29,21 +29,33 @@ const matches = computed(() => {
   return values.filter(x => (new RegExp(state.pattern, 'g')).test(x))
 })
 
-const selectedDisplay = computed(() => {
-  const optionsSet = new Set(props.items)
-  return [...state.selected]
-    .map(x => ({ item: x, available: optionsSet.has(x) }))
-    .sort((a, b) => a.item.localeCompare(b.item))
+// const selectedDisplay = computed(() => {
+//   const optionsSet = new Set(props.items)
+//   return [...state.selected]
+//     .map(x => ({ item: x, available: optionsSet.has(x) }))
+//     .sort((a, b) => a.item.localeCompare(b.item))
+// })
+//
+// const matchesDisplay = computed(() => {
+//   return [...matches.value]
+//     .filter(x => !state.selected.has(x))
+//     .sort((a, b) => a.localeCompare(b))
+// })
+
+const availableEntries = computed(() => {
+  const options = new Set(props.items)
+  return [...new Set([...props.items, ...state.selected])]
+    .sort()
+    .map(item => ({
+      item: item,
+      name: displayName(item),
+      selected: state.selected.has(item),
+      missing: !options.has(item),
+    }))
 })
 
-const matchesDisplay = computed(() => {
-  return [...matches.value]
-    .filter(x => !state.selected.has(x))
-    .sort((a, b) => a.localeCompare(b))
-})
-
-function displayItem(name) {
-  return name
+function displayName(item) {
+  return item
     .replace(/_/g, '_<wbr>')
     .replace(/\./g, '<wbr>.')
     .replace(/:/g, ':<br>')
@@ -59,10 +71,19 @@ function unselect(item) {
   emit('unselect', item)
 }
 
+function toggle(item) {
+  if (state.selected.has(item))
+    unselect(item)
+  else
+    select(item)
+}
+
 function selectAll() {
   let count = 0
-  for (const item of matchesDisplay.value) {
-    select(item)
+  for (const entry of availableEntries.value) {
+    if (entry.selected)
+      continue
+    select(entry.item)
     count++
     if (count >= 10)
       break
@@ -71,7 +92,7 @@ function selectAll() {
 
 function unselectAll() {
   for (const item of state.selected)
-    unselect(item)
+    toggle(item)
 }
 
 </script>
@@ -93,16 +114,27 @@ function unselectAll() {
     <span class="btn icon" @click="unselectAll" title="Unselect all">close</span>
   </div>
   <div class="list">
+
+    <!-- <ul> -->
+    <!--   <li v-for="entry in selectedDisplay" @click="unselect(entry.item)" :class="{ selected: true, missing: !entry.available }"> -->
+    <!--     <span class="icon">check_box</span> -->
+    <!--     <div v-html="displayName(entry.item)"></div> -->
+    <!--   </li> -->
+    <!--   <li v-for="item in matchesDisplay" @click="select(item)" class="matched"> -->
+    <!--     <span class="icon">check_box_outline_blank</span> -->
+    <!--     <div v-html="displayName(item)"></div> -->
+    <!--   </li> -->
+    <!-- </ul> -->
+
     <ul>
-      <li v-for="entry in selectedDisplay" @click="unselect(entry.item)" :class="{ selected: true, unavailable: !entry.available }">
-        <span class="icon">check_box</span>
-        <div v-html="displayItem(entry.item)"></div>
-      </li>
-      <li v-for="item in matchesDisplay" @click="select(item)" class="matched">
-        <span class="icon">check_box_outline_blank</span>
-        <div v-html="displayItem(item)"></div>
+      <li v-for="entry in availableEntries" @click="toggle(entry.item)"
+          :class="{ selected: entry.selected, missing: entry.missing }">
+        <span v-if="entry.selected" class="icon">check_box</span>
+        <span v-else class="icon">check_box_outline_blank</span>
+        <div v-html="entry.name"></div>
       </li>
     </ul>
+
   </div>
 </div>
 </template>
@@ -128,6 +160,6 @@ li { display: flex; align-items: center; cursor: pointer; line-height: 1; font-f
 li div { display: 1 1 content; padding: .3rem; white-space: nowrap; }
 li:hover { background: #eee; }
 
-.unavailable { color: #999; }
+.missing { color: #999; }
 
 </style>

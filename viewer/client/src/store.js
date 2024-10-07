@@ -18,10 +18,6 @@ function colToMet(col) {
   return col.substr(col.lastIndexOf(':') + 1)
 }
 
-function compare(a, b) {
-  return a.localeCompare(b)
-}
-
 /*****************************************************************************
  * State
  *****************************************************************************/
@@ -109,7 +105,7 @@ watch(() => selRuns, () => updateRuns(false), { deep: 2 })
  *****************************************************************************/
 
 const availableExps = computed(() => {
-  return cachedEids.value.sort(compare)
+  return cachedEids.value.sort()
 })
 
 const availableRuns = computed(() => {
