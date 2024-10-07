@@ -2,121 +2,20 @@
 
 import { reactive, computed, watch, onMounted, ref, toRef } from 'vue'
 import { saveStorage, loadStorage } from './storage.js'
-import * as api from './api.js'
+import store from './store.js'
+
 import Selector from './Selector.vue'
 import Card from './Card.vue'
 import CardFloat from './CardFloat.vue'
 import CardVideo from './CardVideo.vue'
 import CardText from './CardText.vue'
 
-const state = reactive({
-  columns: loadStorage('columns', 3),
-  expids: loadStorage('expids', []),
-  exps: loadStorage('exps', {}),
-  runs: loadStorage('runs', {}),
-  selExps: loadStorage('selExps', new Set()),
-  selRuns: loadStorage('selRuns', new Set()),
-  selMets: loadStorage('selMets', new Set()),
-})
+const columns = ref(loadStorage('columns', 3))
 
-const loadingExps = ref(false)
-const loadingRuns = ref(false)
-const loadingMets = ref(false)
-
-///////////////////////////////////////////////////////////////////////////////
-// Persistence
-///////////////////////////////////////////////////////////////////////////////
-
-watch(() => state.expids, x => saveStorage('expids', x))
-watch(() => state.exps, x => saveStorage('exps', x), { deep: true })
-watch(() => state.runs, x => saveStorage('runs', x), { deep: true })
-watch(() => state.selExps, x => saveStorage('selExps', x), { deep: true })
-watch(() => state.selRuns, x => saveStorage('selRuns', x), { deep: true })
-watch(() => state.selMets, x => saveStorage('selMets', x), { deep: true })
-watch(() => state.columns, x => saveStorage('columns', x))
-
-///////////////////////////////////////////////////////////////////////////////
-// Fetching
-///////////////////////////////////////////////////////////////////////////////
-
-onMounted(() => {
-  if (!state.expids.length)
-    api.getExpids(x => state.expids = x, loadingExps)
-})
-
-watch(() => state.selExps, () => {
-  const missing = [...state.selExps].filter(expid => !(expid in state.exps))
-  api.getExps(missing, x => state.exps[x.id] = x, loadingRuns)
-}, { deep: true, immediate: true })
-
-watch(() => state.selRuns, () => {
-  const missing = [...state.selRuns].filter(runid => !(runid in state.runs))
-  api.getRuns(missing, x => state.runs[x.id] = x, loadingMets)
-}, { deep: true, immediate: true })
-
-function refresh() {
-  for (const expid of Object.keys(state.exps))
-    if (!state.selExps.has(expid))
-      delete state.exps[expid]
-  for (const runid of Object.keys(state.runs))
-    if (!state.selRuns.has(runid))
-      delete state.runs[runid]
-  api.getExpids(x => state.expids = x, loadingExps)
-  api.getExps([...state.selExps], x => state.exps[x.id] = x, loadingRuns)
-  api.getRuns([...state.selRuns], x => state.runs[x.id] = x, loadingMets)
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Display
-///////////////////////////////////////////////////////////////////////////////
-
-const expsOptions = computed(() => {
-  return [...state.expids]
-    .sort((a, b) => a.localeCompare(b))
-})
-
-const runsOptions = computed(() => {
-  let options = []
-  for (const expid of state.selExps)
-    if (expid in state.exps)
-      options = options.concat(state.exps[expid]['runs'])
-  return options.sort((a, b) => a.localeCompare(b))
-}, { deep: true })
-
-const metsOptions = computed(() => {
-  const options = new Set()
-  for (const runid of state.selRuns)
-    if (runid in state.runs)
-      for (const col of state.runs[runid]['cols'])
-        options.add(colToMet(col))
-  return [...options].sort((a, b) => a.localeCompare(b))
-}, { deep: true })
-
-const cardsData = computed(() => {
-  const cards = [...state.selMets].map(met => {
-    const cols = []
-    const ext = met.substr(met.lastIndexOf('.') + 1)
-    for (const runid of state.selRuns)
-      if (runid in state.runs)
-        for (const col of state.runs[runid]['cols'])
-          if (colToMet(col) === met)
-            cols.push(col)
-    return { name: met, ext, ext, cols: cols }
-  })
-  return cards
-
-}, { deep: true })
-
-///////////////////////////////////////////////////////////////////////////////
-// Other
-///////////////////////////////////////////////////////////////////////////////
-
-function colToMet(col) {
-  return col.substr(col.lastIndexOf(':') + 1)
-}
+watch(() => columns, x => saveStorage('columns', x))
 
 function toggleLayout() {
-  state.columns = state.columns % 5 + 1
+  columns.value = columns.value % 5 + 1
 }
 
 </script>
@@ -126,18 +25,20 @@ function toggleLayout() {
   <div class="header layoutRow">
     <h1>Scope</h1>
     <span class="fill"></span>
-    <span class="btn icon" @click="refresh">refresh</span>
+    <span class="btn icon" @click="store.refresh">refresh</span>
     <span class="btn icon" @click="toggleLayout">settings</span>
   </div>
   <div class="content layoutRow">
+
     <div class="left layoutCol">
       <Selector
-        :items="metsOptions" v-model="state.selMets"
-        :loading="loadingMets" title="Metrics" class="selector" />
+        :items="store.availableMets.value" v-model="store.selMets.value"
+        :loading="!!store.pendingRuns.value.size" title="Metrics" class="selector" />
     </div>
+
     <div class="center">
       <div class="cards">
-        <template v-for="card in cardsData" :key="card.met">
+        <template v-for="card in store.availableCards.value" :key="card.met">
           <CardFloat
             v-if="card.ext == 'float'"
             :name="card.name" :cols="card.cols" class="card" />
@@ -152,15 +53,23 @@ function toggleLayout() {
         </template>
       </div>
     </div>
+
     <div class="right layoutCol">
       <Selector
-        :items="expsOptions" v-model="state.selExps"
-        :loading="loadingExps" title="Experiments" class="selector" />
+        :items="store.availableExps.value" v-model="store.selExps.value"
+        :loading="!!store.pendingEids.value" title="Experiments" class="selector" />
       <Selector
-        :items="runsOptions" v-model="state.selRuns"
-        :loading="loadingRuns" title="Runs" class="selector" />
+        :items="store.availableRuns.value" v-model="store.selRuns.value"
+        :loading="!!store.pendingExps.value.size" title="Runs" class="selector" />
     </div>
   </div>
+
+  <!-- <div class="footer"> -->
+  <!--   DEBUG: -->
+  <!--   pending: {{ store.pendingExps }} -->
+  <!--   cache: {{ Object.keys(store.cachedExps.value) }} -->
+  <!-- </div> -->
+
 </div>
 </template>
 
@@ -179,7 +88,7 @@ function toggleLayout() {
 
 .selector { flex: 1 1 0; overflow: hidden; padding: 1rem 0 0 1rem; }
 
-.cards { --columns: v-bind(state.columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; }
+.cards { --columns: v-bind(columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; }
 .card { height: 30rem; max-height: 80vh; border: 1px solid #ddd; }
 
 </style>

@@ -75,7 +75,7 @@ def get_exp(expid: str):
   folders = find_runs(root + '/' + expid)
   folders = [x.removeprefix(str(root))[1:] for x in folders]
   runids = [x.replace('/', ':') for x in folders]
-  return {'runs': runids}
+  return {'id': expid, 'runs': runids}
 
 
 @app.get('/run/{runid}')
@@ -85,7 +85,7 @@ def get_run(runid: str):
   children = fs.list(folder)
   children = [x.removeprefix(str(root))[1:] for x in children]
   colids = [x.replace('/', ':') for x in children]
-  return {'cols': colids}
+  return {'id': runid, 'cols': colids}
 
 
 @app.get('/col/{colid}')
@@ -96,13 +96,13 @@ def get_col(colid: str):
   if ext == 'float':
     buffer = fs.read(path)
     steps, values = tuple(zip(*struct.iter_unpack('>qd', buffer)))
-    return {'steps': steps, 'values': values}
+    return {'id': colid, 'steps': steps, 'values': values}
   elif ext in ('txt', 'mp4', 'webm'):
     buffer = fs.read(path + '/index')
     steps, idents = tuple(zip(*struct.iter_unpack('q8s', buffer)))
     filenames = [f'{s:020}-{x.hex()}.{ext}' for s, x in zip(steps, idents)]
     values = [f'{colid}:{x}' for x in filenames]
-    return {'steps': steps, 'values': values}
+    return {'id': colid, 'steps': steps, 'values': values}
   else:
     raise NotImplementedError((colid, ext))
 
