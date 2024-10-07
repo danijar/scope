@@ -68,6 +68,7 @@ function toggleLayout() {
   <!--   DEBUG: -->
   <!--   pending: {{ store.pendingExps }} -->
   <!--   cache: {{ Object.keys(store.cachedExps.value) }} -->
+  <!--   {{ Object.keys(store.availableCols.value).sort() }} -->
   <!-- </div> -->
 
 </div>

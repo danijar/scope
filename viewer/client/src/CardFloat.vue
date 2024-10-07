@@ -1,21 +1,49 @@
 <script setup>
 
-import { reactive, computed, watch, onMounted, useTemplateRef } from 'vue'
-import Card from './Card.vue'
-import * as api from './api.js'
+import { reactive, computed, watch, onMounted, ref, useTemplateRef } from 'vue'
+// import * as api from './api.js'
+import store from './store.js'
 import { Chart } from 'chart.js'
 import { getRelativePosition } from 'chart.js/helpers'
+import Card from './Card.vue'
 
 const props = defineProps({
   name: { type: String, required: true },
   cols: { type: Array, required: true },
 })
 
-const state = reactive({
-  status: '',
-  cols: {},
-  legend: [],
+const cols = computed(() => {
+  return props.cols
+    .filter(colid => colid in store.availableCols.value)
+    .sort()
+    .map(colid => store.availableCols.value[colid])
+    .map(col => ({
+      ...col,
+      data: col.steps.map((step, i) => ({ x: step, y: col.values[i]})),
+    }))
 })
+
+const status = computed(() => {
+  return props.cols
+    .filter(colid => store.pendingCols.value.has(colid))
+    .length > 0 ? 'loading...' : ''
+})
+
+// function storeCol(col) {
+//   const data = col.steps.map((step, i) => ({ x: step, y: col.values[i]}))
+//   col.data = data
+//   // TODO: col = shallowRef(col)
+//   if (props.cols.includes(col.id))
+//     state.cols[col.id] = col
+// }
+
+const legend = ref([[]])
+
+// const state = reactive({
+//   status: '',
+//   cols: {},
+//   legend: [],
+// })
 
 const root = useTemplateRef('root')
 
@@ -92,35 +120,35 @@ onMounted(() => {
   // updateCols()
 })
 
-function refresh() {
-  api.getCols(props.cols, storeCol)
-}
+// function refresh() {
+//   api.getCols(props.cols, storeCol)
+// }
 
-watch(() => props.cols, () => {
-  for (const colid of Object.keys(state.cols))
-    if (!props.cols.includes(colid))
-      delete state.cols[colid]
-  // TODO: Exclude missing that are already in the process of being loaded!
-  api.getCols(props.cols, storeCol)
-}, { immediate: true })
+// watch(() => props.cols, () => {
+//   for (const colid of Object.keys(state.cols))
+//     if (!props.cols.includes(colid))
+//       delete state.cols[colid]
+//   // TODO: Exclude missing that are already in the process of being loaded!
+//   api.getCols(props.cols, storeCol)
+// }, { immediate: true })
 
-watch(() => state.cols, () => {
+watch(() => cols, () => {
   updateDatasets()
   updateLegend(Number.MAX_VALUE, -Number.MAX_VALUE)
 }, { deep: true })
 
-function storeCol(col) {
-  const data = col.steps.map((step, i) => ({ x: step, y: col.values[i]}))
-  col.data = data
-  // TODO: col = shallowRef(col)
-  if (props.cols.includes(col.id))
-    state.cols[col.id] = col
-}
+// function storeCol(col) {
+//   const data = col.steps.map((step, i) => ({ x: step, y: col.values[i]}))
+//   col.data = data
+//   // TODO: col = shallowRef(col)
+//   if (props.cols.includes(col.id))
+//     state.cols[col.id] = col
+// }
 
 function updateDatasets() {
-  const cols = Object.values(state.cols)
-    .sort((a, b) => { a.run.localeCompare(b.run) })
-  chart[0].data.datasets = cols.map((col, i) => ({
+  // const cols = Object.values(cols.value)
+  //   .sort((a, b) => { a.run.localeCompare(b.run) })
+  chart[0].data.datasets = cols.value.map((col, i) => ({
     label: col.run,
     data: col.data,
     fill: false,
@@ -132,7 +160,7 @@ function updateDatasets() {
 }
 
 function updateLegend(targetStep, targetValue) {
-  state.legend = chart[0].data.datasets.map(dataset => {
+  legend.value = chart[0].data.datasets.map(dataset => {
     const index = bisectNearestX(dataset.data, targetStep)
     const value = dataset.data[index].y
     const step = dataset.data[index].x
@@ -186,7 +214,7 @@ function bisectNearestX(array, target) {
 </script>
 
 <template>
-<Card :name="props.name" :status="state.status" ref="root">
+<Card :name="props.name" :status="status" ref="root">
 
   <!-- <template #buttons> -->
   <!--   <span class="btn icon" @click="toggleLogScaleX">query_stats</span> -->
@@ -198,7 +226,7 @@ function bisectNearestX(array, target) {
         <canvas></canvas>
       </div>
       <div class="legend">
-        <div class="entry" v-for="entry in state.legend">
+        <div class="entry" v-for="entry in legend">
           <div :style="{ background: entry.color }"></div>
           <div>{{ entry.run }}</div>
           <div>{{ entry.formattedStep }}</div>

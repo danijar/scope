@@ -93,16 +93,17 @@ def get_col(colid: str):
   print(f'GET /col/{colid}', flush=True)
   ext = colid.rsplit('.', 1)[-1]
   path = root + '/' + colid.replace(':', '/')
+  runid = colid.rsplit(':', 2)[0]  # Remove metric name and scope folder.
   if ext == 'float':
     buffer = fs.read(path)
     steps, values = tuple(zip(*struct.iter_unpack('>qd', buffer)))
-    return {'id': colid, 'steps': steps, 'values': values}
+    return {'id': colid, 'run': runid, 'steps': steps, 'values': values}
   elif ext in ('txt', 'mp4', 'webm'):
     buffer = fs.read(path + '/index')
     steps, idents = tuple(zip(*struct.iter_unpack('q8s', buffer)))
     filenames = [f'{s:020}-{x.hex()}.{ext}' for s, x in zip(steps, idents)]
     values = [f'{colid}:{x}' for x in filenames]
-    return {'id': colid, 'steps': steps, 'values': values}
+    return {'id': colid, 'run': runid, 'steps': steps, 'values': values}
   else:
     raise NotImplementedError((colid, ext))
 
