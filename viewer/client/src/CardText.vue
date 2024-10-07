@@ -1,82 +1,70 @@
 <script setup>
 
-import { reactive, computed, watch, onMounted } from 'vue'
+import { reactive, computed, watch, ref, onMounted } from 'vue'
+import store from './store.js'
 import Card from './Card.vue'
-import * as api from './api.js'
 
 const props = defineProps({
   name: { type: String, required: true },
   cols: { type: Array, required: true },
 })
 
-const state = reactive({
-  status: '',
-  cols: {},
+const cachedFiles = ref({})
+const pendingFiles = ref(new Set())
+
+const cols = computed(() => {
+  return props.cols
+    .filter(colid => colid in store.availableCols.value)
+    .sort()
+    .map(colid => store.availableCols.value[colid])
 })
 
-// TODO: Figure out how to abstract this logic out into the API file.
-const inflight = new Set()
-
-function refresh() {
-  api.getCols(props.cols, storeCol)
-}
-
-watch(() => props.cols, () => {
-  for (const colid of Object.keys(state.cols))
-    if (!props.cols.includes(colid))
-      delete state.cols[colid]
-  const missing = [...props.cols]
-    .filter(x => !(x in state.cols))
-    .filter(x => !inflight.has(x))
-  missing.forEach(x => inflight.add(x))
-  api.getCols(missing, storeCol)
-}, { immediate: true })
-
-watch(() => state.cols, () => {
-  for (const col of Object.values(state.cols)) {
-    if (col === null) continue
-    if (col.fileidSelected !== col.fileidFetching) {
-      col.fileidFetching = col.fileidSelected
-      fetch(`/api/file/${col.fileidSelected}`).then(async response => {
-        col.text = (await ((await response).json()))['text'].replace(/\n/g, '<br>')
-      })
-    }
-  }
-}, { deep: true })
-
-function storeCol(col) {
-  const lastValue = col.values[col.values.length - 1]
-  col.text = 'loading...'
-  col.fileidSelected = lastValue
-  col.fileidFetching = null
-  if (props.cols.includes(col.id))
-    state.cols[col.id] = col
-  inflight.delete(col.id)
-}
-
-const displayCols = computed(() => {
-  return Object.values(state.cols)
-    .filter(x => x !== null)
-    .sort((a, b) => a.run.localeCompare(b.run))
+const loading = computed(() => {
+  return props.cols
+    .filter(colid => store.pendingCols.value.has(colid))
+    .length > 0 || pendingFiles.size > 0
 })
+
+const entries = computed(() => {
+  return cols.value.map(col => ({
+    run: col.run,
+    file: col.values[col.values.length - 1],
+    steps: col.steps,
+    values: col.values,
+  }))
+})
+
+watch(() => entries, () => {
+  const usedFiles = new Set(entries.value.map(entry => entry.file))
+  Object.keys(cachedFiles.value)
+    .filter(fileid => !(usedFiles.has(fileid)))
+    .map(fileid => delete cachedFiles.value[fileid]);
+  [...usedFiles]
+    .filter(fileid => !(fileid in cachedFiles.value))
+    .map(fileid => { pendingFiles.value.add(fileid); return fileid })
+    .map(fileid => store.get(`/api/file/${fileid}`)
+      .then(data => cachedFiles.value[data.id] = data)
+      .finally(() => pendingFiles.value.delete(fileid)))
+}, { deep: 2 })
 
 </script>
 
 <template>
-<Card :name="props.name" :status="state.status" :scrollX="false" :scrollY="true">
-  <div v-for="col in displayCols" class="col">
-    <h3> {{ col.run }}</h3>
-    <span class="count">Count: {{ col.steps.length }}</span>
-    <span class="step">Step: {{ col.steps[col.steps.length - 1] }}</span><br>
-    <pre v-html="col.text"></pre>
+<Card :name="props.name" :loading="loading" :scrollX="false" :scrollY="true">
+  <div v-for="entry in entries" class="entry">
+    <h3> {{ entry.run }}</h3>
+    <span class="count">Count: {{ entry.steps.length }}</span>
+    <span class="step">Step: {{ entry.steps[entry.steps.length - 1] }}</span><br>
+    <pre v-if="entry.file in cachedFiles" v-html="cachedFiles[entry.file].text"></pre>
+    <span v-else class="icon spinner">progress_activity</span>
   </div>
 </Card>
 </template>
 
 <style scoped>
 
-.col { margin: 1rem 0 0; }
-.col:first-child { margin-top: 0 }
+.entry { margin: 1rem 0 0; }
+.entry:first-child { margin-top: 0 }
 
 h3 { margin: 0; word-break: break-all; }
 pre { margin: .3rem 0 0; padding: .3rem; font-family: monospace; background: #eee; color: #444; border-radius: .2rem; overflow: auto; }

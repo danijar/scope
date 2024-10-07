@@ -116,7 +116,7 @@ def get_file(fileid: str):
 
   if ext == 'txt':
     text = fs.read(path).decode('utf-8')
-    return {'text': text}
+    return {'id': fileid, 'text': text}
 
   elif ext in ('mp4', 'webm'):
     fp, size = fs.open(path)

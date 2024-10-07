@@ -5,12 +5,14 @@ import { saveStorage, loadStorage } from './storage.js'
  * Helpers
  *****************************************************************************/
 
-async function get(url) {
+async function get(url, delay = 0) {
   if (url.indexOf('[') >= 0)
     throw new Error(`Invalid URL: ${url}`)
   console.log(url)
   const result = await (await fetch(url)).json()
   // await new Promise(x => setTimeout(x, 500))  // TODO
+  if (delay > 0)
+    await new Promise(x => setTimeout(x, delay))  // TODO
   return result
 }
 
@@ -174,6 +176,7 @@ const store = {
   pendingRuns,
   pendingCols,
 
+  get,
   refresh,
 
   // cachedEids,
