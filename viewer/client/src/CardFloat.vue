@@ -1,7 +1,6 @@
 <script setup>
 
 import { reactive, computed, watch, onMounted, ref, useTemplateRef } from 'vue'
-// import * as api from './api.js'
 import store from './store.js'
 import { Chart } from 'chart.js'
 import { getRelativePosition } from 'chart.js/helpers'
@@ -17,33 +16,15 @@ const cols = computed(() => {
     .filter(colid => colid in store.availableCols.value)
     .sort()
     .map(colid => store.availableCols.value[colid])
-    .map(col => ({
-      ...col,
-      data: col.steps.map((step, i) => ({ x: step, y: col.values[i]})),
-    }))
 })
 
-const status = computed(() => {
+const loading = computed(() => {
   return props.cols
     .filter(colid => store.pendingCols.value.has(colid))
-    .length > 0 ? 'loading...' : ''
+    .length > 0
 })
 
-// function storeCol(col) {
-//   const data = col.steps.map((step, i) => ({ x: step, y: col.values[i]}))
-//   col.data = data
-//   // TODO: col = shallowRef(col)
-//   if (props.cols.includes(col.id))
-//     state.cols[col.id] = col
-// }
-
-const legend = ref([[]])
-
-// const state = reactive({
-//   status: '',
-//   cols: {},
-//   legend: [],
-// })
+const mouseXY = ref([Number.MAX_VALUE, -Number.MAX_VALUE])
 
 const root = useTemplateRef('root')
 
@@ -62,6 +43,61 @@ const colors = [
   '#f781bf',
   '#999999',
 ]
+
+const datasets = computed(() => {
+  return cols.value
+    .filter(col => col.steps.length > 0)
+    .map((col, i) => ({
+      label: col.run,
+      data: col.steps.map((step, j) => ({ x: step, y: col.values[j]})),
+      fill: false,
+      pointRadius: 0,
+      borderColor: colors[i % colors.length],
+      borderWidth: 1,
+      col: col,
+    }))
+})
+
+const legend = computed(() => {
+  return datasets.value.map(dataset => {
+    const index = bisectNearest(dataset.col.steps, mouseXY.value[0])
+    const step = dataset.col.steps[index]
+    const value = dataset.col.values[index]
+    const formattedStep = step.toLocaleString('en-US')
+    let formattedValue
+    if (0.01 <= Math.abs(value) && Math.abs(value) <= 10000)
+      formattedValue = value.toFixed(3)
+    else
+      formattedValue = value.toExponential(2)
+    return {
+      run: dataset.label,
+      color: dataset.borderColor,
+      step: step,
+      value: value,
+      formattedStep: formattedStep,
+      formattedValue: formattedValue,
+    }
+  }).sort((a, b) => {
+    const distA = Math.abs(a.value - mouseXY.value[1])
+    const distB = Math.abs(b.value - mouseXY.value[1])
+    return distA - distB
+  })
+})
+
+onMounted(() => {
+  const canvas = root.value.$el.querySelector('canvas')
+  chart[0] = createChart(canvas)
+  updateChart()
+})
+
+watch(() => datasets, () => updateChart(), { deep: 2 })
+
+function updateChart() {
+  if (chart[0] === null)
+    return
+  chart[0].data.datasets = datasets.value.slice()
+  chart[0].update()
+}
 
 function createChart(canvas) {
   return new Chart(canvas, {
@@ -97,7 +133,7 @@ function createChart(canvas) {
           const canvasPos = getRelativePosition(event, chart)
           const dataX = chart.scales.x.getValueForPixel(canvasPos.x)
           const dataY = chart.scales.y.getValueForPixel(canvasPos.y)
-          updateLegend(dataX, dataY)
+          mouseXY.value = [dataX, dataY]
         }
         if (event.type === 'click') {
           const now = Date.now()
@@ -114,83 +150,12 @@ function createChart(canvas) {
   })
 }
 
-onMounted(() => {
-  const canvas = root.value.$el.querySelector('canvas')
-  chart[0] = createChart(canvas)
-  // updateCols()
-})
-
-// function refresh() {
-//   api.getCols(props.cols, storeCol)
-// }
-
-// watch(() => props.cols, () => {
-//   for (const colid of Object.keys(state.cols))
-//     if (!props.cols.includes(colid))
-//       delete state.cols[colid]
-//   // TODO: Exclude missing that are already in the process of being loaded!
-//   api.getCols(props.cols, storeCol)
-// }, { immediate: true })
-
-watch(() => cols, () => {
-  updateDatasets()
-  updateLegend(Number.MAX_VALUE, -Number.MAX_VALUE)
-}, { deep: true })
-
-// function storeCol(col) {
-//   const data = col.steps.map((step, i) => ({ x: step, y: col.values[i]}))
-//   col.data = data
-//   // TODO: col = shallowRef(col)
-//   if (props.cols.includes(col.id))
-//     state.cols[col.id] = col
-// }
-
-function updateDatasets() {
-  // const cols = Object.values(cols.value)
-  //   .sort((a, b) => { a.run.localeCompare(b.run) })
-  chart[0].data.datasets = cols.value.map((col, i) => ({
-    label: col.run,
-    data: col.data,
-    fill: false,
-    pointRadius: 0,
-    borderColor: colors[i % colors.length],
-    borderWidth: 1,
-  }))
-  chart[0].update()
-}
-
-function updateLegend(targetStep, targetValue) {
-  legend.value = chart[0].data.datasets.map(dataset => {
-    const index = bisectNearestX(dataset.data, targetStep)
-    const value = dataset.data[index].y
-    const step = dataset.data[index].x
-    const formattedStep = step.toLocaleString('en-US')
-    let formattedValue
-    if (0.01 <= Math.abs(value) && Math.abs(value) <= 10000)
-      formattedValue = value.toFixed(3)
-    else
-      formattedValue = value.toExponential(2)
-    return {
-      run: dataset.label,
-      color: dataset.borderColor,
-      step: step,
-      value: value,
-      formattedStep: formattedStep,
-      formattedValue: formattedValue,
-    }
-  }).sort((a, b) => {
-    const distA = Math.abs(a.value - targetValue)
-    const distB = Math.abs(b.value - targetValue)
-    return distA - distB
-  })
-}
-
-function bisectNearestX(array, target) {
+function bisectNearest(array, target) {
   let lo = 0
   let hi = array.length - 1
   while (lo <= hi) {
     const mid = Math.floor((lo + hi) / 2)
-    const val = array[mid].x
+    const val = array[mid]
     if (target > val)
       lo = mid + 1
     else if (target < val)
@@ -203,40 +168,26 @@ function bisectNearestX(array, target) {
   return (array[lo] - target) < (target - array[hi]) ? lo : hi
 }
 
-// function toggleLogScaleX() {
-//   if (chart[0].options.scales.y.type == 'linear')
-//     chart[0].options.scales.y.type = 'logarithmic'
-//   else
-//     chart[0].options.scales.y.type = 'linear'
-//   chart[0].update()
-// }
-
 </script>
 
 <template>
-<Card :name="props.name" :status="status" ref="root">
-
-  <!-- <template #buttons> -->
-  <!--   <span class="btn icon" @click="toggleLogScaleX">query_stats</span> -->
-  <!-- </template> -->
-
-  <template #default>
-    <div class="content layoutCol">
-      <div ref="chart" class="chart">
-        <canvas></canvas>
-      </div>
-      <div class="legend">
-        <div class="entry" v-for="entry in legend">
-          <div :style="{ background: entry.color }"></div>
-          <div>{{ entry.run }}</div>
-          <div>{{ entry.formattedStep }}</div>
-          <div>{{ entry.formattedValue }}</div>
+  <Card :name="props.name" :loading="loading" ref="root">
+    <template #default>
+      <div class="content layoutCol">
+        <div ref="chart" class="chart">
+          <canvas></canvas>
         </div>
-      </div>
-   </div>
-  </template>
-
-</Card>
+        <div class="legend">
+          <div class="entry" v-for="entry in legend">
+            <div :style="{ background: entry.color }"></div>
+            <div>{{ entry.run }}</div>
+            <div>{{ entry.formattedStep }}</div>
+            <div>{{ entry.formattedValue }}</div>
+          </div>
+        </div>
+     </div>
+    </template>
+  </Card>
 </template>
 
 <style scoped>

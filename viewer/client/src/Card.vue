@@ -6,7 +6,7 @@ import { reactive, computed, watch, onMounted } from 'vue'
 
 const props = defineProps({
   name: { type: String, required: true },
-  status: { type: String, default: '' },
+  loading: { type: Boolean, default: false },
 })
 
 const state = reactive({
@@ -30,13 +30,15 @@ function toggleZoom() {
   tabindex="0" @keydown.f.prevent="toggleZoom" @keydown.esc.prevent="state.zoom = false">
   <div class="header">
     <h2>{{ props.name }}</h2>
+    <Transition>
+      <span v-if="props.loading" class="icon spinner">progress_activity</span>
+    </Transition>
     <div class="buttons">
       <slot name="buttons"></slot>
       <span class="btn icon" @click="toggleZoom" title="Fullscreen">fullscreen</span>
     </div>
   </div>
   <div class="content">
-    <span v-if="props.status">{{ props.status }}</span>
     <slot></slot>
   </div>
 </div>
