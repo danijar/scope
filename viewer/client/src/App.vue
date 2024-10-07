@@ -12,7 +12,7 @@ import CardText from './CardText.vue'
 
 const columns = ref(loadStorage('columns', 3))
 
-watch(() => columns, x => saveStorage('columns', x))
+watch(() => columns, x => saveStorage('columns', x.value), { deep: true })
 
 function toggleLayout() {
   columns.value = columns.value % 5 + 1
