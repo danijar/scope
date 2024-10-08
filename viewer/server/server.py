@@ -14,6 +14,7 @@ args = elements.Flags(
     root=os.environ.get('SCOPE_ROOT', ''),
     fs=os.environ.get('SCOPE_FS', 'elements'),
     port=6008,
+    maxdepth=2,
 ).parse()
 print(args)
 root = args.root.rstrip('/')
@@ -97,34 +98,36 @@ def get_file(request: fastapi.Request, fileid: str):
     raise NotImplementedError((fileid, ext))
 
 
-def find_runs(folder, workers=64):
+def find_runs(folder, maxdepth=args.maxdepth, workers=64):
   if not workers:
-    leafs = []
-    queue = [folder]
+    runs = []
+    queue = [(folder, 0)]
     while queue:
-      node = queue.pop(0)
+      node, depth = queue.pop(0)
       children = fs.list(node)
       if any(x.endswith('/scope') for x in children):
-        leafs.append(node)
-      else:
-        queue += children
-    return leafs
-  leafs = []
+        runs.append(node)
+      elif depth < maxdepth:
+        queue += [(x, depth + 1) for x in children]
+    return runs
+  runs = []
   with concurrent.futures.ThreadPoolExecutor(workers) as pool:
     future = pool.submit(fs.list, folder)
     future.parent = folder
+    future.depth = 0
     queue = [future]
     while queue:
-      future = queue.pop(0)
-      children = future.result()
+      current = queue.pop(0)
+      children = current.result()
       if any(x.endswith('/scope') for x in children):
-        leafs.append(future.parent)
-      else:
+        runs.append(current.parent)
+      elif current.depth < maxdepth:
         for child in children:
           future = pool.submit(fs.list, child)
           future.parent = child
+          future.depth = current.depth + 1
           queue.append(future)
-  return leafs
+  return runs
 
 
 def RangeResponse(request, openfn, filesize, content_type):
@@ -174,4 +177,6 @@ def RangeResponse(request, openfn, filesize, content_type):
 
 if __name__ == '__main__':
   # uvicorn.run('__main__:app', host='0.0.0.0', port=args.port, reload=True)
-  uvicorn.run('__main__:app', host='0.0.0.0', port=args.port, reload=False, workers=64)
+  uvicorn.run(
+      '__main__:app', host='0.0.0.0', port=args.port,
+      reload=False, workers=64)

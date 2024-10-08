@@ -74,9 +74,15 @@ class Fileutil:
     return io.BytesIO(buffer)
 
   def _sh(self, cmd):
-    process = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    out, err = process.communicate()
-    if process.returncode:
-      raise RuntimeError((process.returncode, out, err))
-    return out
+    if '|' in cmd:
+      process = subprocess.Popen(
+          cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      out, err = process.communicate()
+      if process.returncode:
+        raise RuntimeError((process.returncode, out, err))
+      return out
+    else:
+      try:
+        return subprocess.check_output(cmd.split(), shell=False)
+      except subprocess.CalledProcessError as e:
+        raise RuntimeError(f'Error in subprocess: {e}')
