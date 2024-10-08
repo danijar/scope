@@ -22,7 +22,7 @@ function toggleZoom() {
 <template>
 <div
   class="card layoutCol" :class="{ zoom: state.zoom }"
-  tabindex="0" @keydown.f.prevent="toggleZoom" @keydown.esc.prevent="state.zoom = false">
+  tabindex="0" @keydown.f.exact.prevent="toggleZoom" @keydown.esc.prevent="state.zoom = false">
   <div class="header">
     <h2>{{ props.name }}</h2>
     <Transition>
