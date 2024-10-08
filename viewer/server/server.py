@@ -177,5 +177,5 @@ def find_runs(folder, workers=32):
 
 
 if __name__ == '__main__':
-  uvicorn.run('__main__:app', host='0.0.0.0', port=args.port, reload=True)
-  # uvicorn.run('__main__:app', host='0.0.0.0', port=args.port, reload=False, workers=64)
+  # uvicorn.run('__main__:app', host='0.0.0.0', port=args.port, reload=True)
+  uvicorn.run('__main__:app', host='0.0.0.0', port=args.port, reload=False, workers=64)

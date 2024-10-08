@@ -116,11 +116,11 @@ function createChart(canvas) {
       plugins: {
         tooltip: { enabled: false },
         crosshair: {
-          line: { color: 'rgba(0,0,0,0.5)' },
+          line: { color: 'rgba(127,127,127,0.8)' },
           sync: { enabled: false },
           zoom: {
-            zoomboxBackgroundColor: 'rgba(0,0,0,0.05)',
-            zoomboxBorderColor: 'rgba(0,0,0,0.5)',
+            zoomboxBackgroundColor: 'rgba(127,127,127,0.05)',
+            zoomboxBorderColor: 'rgba(127,127,127,0.8)',
           },
         },
       },

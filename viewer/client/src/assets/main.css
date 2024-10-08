@@ -68,9 +68,9 @@
   --fg1: #eee;
   --fg2: #ccc;
   --fg3: #aaa;
-  --bg1: #111;
-  --bg2: #000;
-  --bg3: #222;
+  --bg1: #222;
+  --bg2: #111;
+  --bg3: #333;
 }
 
 .dark .logo { filter: invert(); }

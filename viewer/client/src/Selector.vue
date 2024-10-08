@@ -21,19 +21,27 @@ watch(() => state.selected, () => {
   model.value = state.selected
 })
 
-const matches = computed(() => {
-  let values = [...props.items]
-  if (state.pattern == '')
-    return values
-  // RegExp objects are stateful and can only be used once.
-  return values.filter(x => (new RegExp(state.pattern, 'g')).test(x))
+const itemsSorted = computed(() => {
+  return props.items.sort()
 })
+
+const itemsSet = computed(() => {
+  return new Set(props.items)
+})
+
+// const matches = computed(() => {
+//   // RegExp objects are stateful and can only be used once.
+//   const pattern = state.pattern || '.*'
+//   return itemsSorted.value
+//     .filter(x => !(state.selected.has(x)))
+//     .filter(x => (new RegExp(pattern, 'g')).test(x))
+// })
 
 // const selectedDisplay = computed(() => {
 //   const optionsSet = new Set(props.items)
 //   return [...state.selected]
 //     .map(x => ({ item: x, available: optionsSet.has(x) }))
-//     .sort((a, b) => a.item.localeCompare(b.item))
+//     .sort((a, b) => a.item.localeCompare(b.item)
 // })
 //
 // const matchesDisplay = computed(() => {
@@ -43,15 +51,18 @@ const matches = computed(() => {
 // })
 
 const availableEntries = computed(() => {
-  const options = new Set(props.items)
-  return [...new Set([...props.items, ...state.selected])]
-    .sort()
-    .map(item => ({
-      item: item,
-      name: displayName(item),
-      selected: state.selected.has(item),
-      missing: !options.has(item),
-    }))
+  const missing = [...state.selected]
+    .filter(item => !(itemsSet.value.has(item)))
+  // RegExp objects are stateful and can only be used once.
+  const pattern = state.pattern || '.*'
+  const available = itemsSorted.value
+    .filter(item => state.selected.has(item) || (new RegExp(pattern, 'g')).test(item))
+  return [...missing, ...available].map(item => ({
+    item: item,
+    name: displayName(item),
+    selected: state.selected.has(item),
+    missing: !itemsSet.value.has(item),
+  }))
 })
 
 function displayName(item) {
