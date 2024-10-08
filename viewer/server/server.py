@@ -1,19 +1,18 @@
 import concurrent.futures
-import io
+import functools
 import os
 import struct
-import subprocess
 
 import elements
 import fastapi
 import fastapi.responses
 import uvicorn
 
+import filesystems
+
 args = elements.Flags(
     root=os.environ.get('SCOPE_ROOT', ''),
-    ls=os.environ.get('SCOPE_LS', ''),
-    cat=os.environ.get('SCOPE_CAT', ''),
-    catrange=os.environ.get('SCOPE_CATRANGE', ''),
+    fs=os.environ.get('SCOPE_FS', 'elements'),
     port=6008,
 ).parse()
 print(args)
@@ -22,38 +21,11 @@ assert root, root
 
 app = fastapi.FastAPI(debug=True)
 
-
-class FileSystem:
-
-  def list(self, path):
-    path = path.rstrip('/')
-    if args.ls:
-      try:
-        output = subprocess.check_output([*args.ls.split(), path])
-        names = [x.decode('utf-8').rstrip('/') for x in output.splitlines()]
-      except subprocess.CalledProcessError:
-        names = []
-    else:
-      names = [str(x).rstrip('/') for x in elements.Path(path).glob('*')]
-    names = [x for x in names if x != path]
-    return names
-
-  def read(self, path):
-    if args.cat:
-      return subprocess.check_output([*args.cat.split(), str(path)])
-    else:
-      return elements.Path(path).read_bytes()
-
-  def open(self, path):
-    if args.cat:
-      buffer = self.read(path)
-      return io.BytesIO(buffer), len(buffer)
-    else:
-      path = elements.Path(path)
-      size = path.blob.size if hasattr(path, 'blob') else None
-      return path.open('rb'), size
-
-fs = FileSystem()
+fs = dict(
+  elements=filesystems.Elements,
+  fileutil=filesystems.Fileutil,
+  local=filesystems.Local,
+)[args.fs]()
 
 
 # @app.get('/', response_class=fastapi.responses.HTMLResponse)
@@ -109,44 +81,23 @@ def get_col(colid: str):
 
 
 @app.get('/file/{fileid}')
-def get_file(fileid: str):
+def get_file(request: fastapi.Request, fileid: str):
   print(f'GET /file/{fileid}', flush=True)
   ext = fileid.rsplit('.', 1)[-1]
   path = root + '/' + fileid.replace(':', '/')
-
   if ext == 'txt':
     text = fs.read(path).decode('utf-8')
     return {'id': fileid, 'text': text}
-
   elif ext in ('mp4', 'webm'):
-    fp, size = fs.open(path)
-    fp.seek(0)
-    def iterfile():
-      if size:
-        remaining = size
-        while remaining > 0:
-          chunk = fp.read(min(128 * 1024, remaining))
-          remaining -= len(chunk)
-          yield chunk
-      else:
-        while True:
-          chunk = fp.read(128 * 1024)
-          if not chunk:
-            break
-          yield chunk
-      fp.close()
-    headers = {
-        'Content-Disposition': f'attachment; filename={fileid}.{ext}',
-    }
-    return fastapi.responses.StreamingResponse(
-        iterfile(), media_type=f'video/{ext}', headers=headers)
-
+    filesize = fs.size(path)
+    openfn = functools.partial(fs.open, path)
+    content_type = f'video/{ext}'
+    return RangeResponse(request, openfn, filesize, content_type)
   else:
     raise NotImplementedError((fileid, ext))
 
 
-
-def find_runs(folder, workers=32):
+def find_runs(folder, workers=64):
   if not workers:
     leafs = []
     queue = [folder]
@@ -174,6 +125,51 @@ def find_runs(folder, workers=32):
           future.parent = child
           queue.append(future)
   return leafs
+
+
+def RangeResponse(request, openfn, filesize, content_type):
+  headers = {
+      'content-type': content_type,
+      'accept-ranges': 'bytes',
+      'content-length': str(filesize),
+      'access-control-expose-headers': (
+          'content-type, accept-ranges, content-length, '
+          'content-range, content-encoding'
+      ),
+  }
+  range_header = request.headers.get('range')
+  if range_header:
+    try:
+      h = range_header.replace('bytes=', '').split('-')
+      start = int(h[0]) if h[0] != '' else 0
+      end = int(h[1]) if h[1] != '' else filesize - 1
+    except ValueError:
+      raise fastapi.HTTPException(
+        fastapi.status.HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE,
+        detail=f'Invalid request range (Range:{range_header!r})')
+    if start > end or start < 0 or end > filesize - 1:
+      raise fastapi.HTTPException(
+        fastapi.status.HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE,
+        detail=f'Invalid request range (Range:{range_header!r})')
+    size = end - start + 1
+    headers['content-length'] = str(size)
+    headers['content-range'] = f'bytes {start}-{end}/{filesize}'
+    status_code = fastapi.status.HTTP_206_PARTIAL_CONTENT
+  else:
+    start = 0
+    end = filesize - 1
+    status_code = fastapi.status.HTTP_200_OK
+  stop = end + 1
+  def iterfile(chunksize=int(2e5)):
+    with openfn(start, stop) as f:
+      total = stop - start
+      nbytes = 0
+      while nbytes < total:
+        chunk = f.read(min(chunksize, total - nbytes))
+        nbytes += len(chunk)
+        yield chunk
+  return fastapi.responses.StreamingResponse(
+    iterfile(), headers=headers, status_code=status_code)
 
 
 if __name__ == '__main__':
