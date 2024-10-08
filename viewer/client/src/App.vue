@@ -31,7 +31,8 @@ function toggleLayout() {
     <span class="fill"></span>
     <span class="btn icon" @click="store.refresh" title="Refresh">refresh</span>
     <span class="btn icon" @click="toggleLayout" title="Change layout">view_column</span>
-    <span class="btn icon" @click="options.dark = !options.dark" title="Dark mode">dark_mode</span>
+    <span class="btn icon" @click="options.dark = true" v-if="!options.dark" title="Dark mode">dark_mode</span>
+    <span class="btn icon" @click="options.dark = false" v-if="options.dark" title="Light mode">light_mode</span>
   </div>
   <div class="content layoutRow">
 
