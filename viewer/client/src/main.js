@@ -37,3 +37,10 @@ const app = createApp(App)
 // };
 
 app.mount('body')
+
+document.fonts.load('24px "Material Symbols Outlined"').then(results => {
+  if (results.length)
+    document.body.classList.add('icon-font-loaded')
+  else
+    console.error('Failed to load icon font')
+})

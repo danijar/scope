@@ -161,9 +161,11 @@ async function refresh() {
  *****************************************************************************/
 
 updateEids()
-watch(() => selExps, () => updateExps(false), { deep: 2 })
-watch(() => selRuns, () => updateRuns(false), { deep: 2 })
-watch(() => [selRuns, selMets], () => updateCols(false), { deep: 3, immediate: true })
+setTimeout(() => {
+  watch(() => selExps, () => updateExps(false), { deep: 2 })
+  watch(() => selRuns, () => updateRuns(false), { deep: 2 })
+  watch(() => [selRuns, selMets], () => updateCols(false), { deep: 3, immediate: true })
+}, 200)
 
 /*****************************************************************************
  * Export

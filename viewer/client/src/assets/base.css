@@ -10,9 +10,6 @@ input {
 }
 
 body {
-  transition:
-    color 0.1s,
-    background-color 0.1s;
   font-family:
     Inter,
     -apple-system,
@@ -30,4 +27,5 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: color 0.1s, background-color 0.1s;
 }

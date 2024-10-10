@@ -25,6 +25,9 @@
   vertical-align: middle;
 }
 
+.icon { opacity: 0; }
+.icon-font-loaded .icon { opacity: inherit; }
+
 .btn {
   flex: 0 0 content;
   display: inline-block;
