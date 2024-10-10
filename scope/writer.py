@@ -7,12 +7,13 @@ import numpy as np
 
 from . import formats
 
+FPS = 10
 
 FORMATS = [
     formats.Text(),
     formats.Float(),
     formats.Image(),
-    formats.Video(),
+    formats.Video(fps=FPS),
 ]
 
 
@@ -28,13 +29,12 @@ class Column:
 
 class Writer:
 
-  def __init__(self, logdir, fps=20, workers=8, formats=None):
+  def __init__(self, logdir, workers=8, formats=None):
     formats = formats or FORMATS
     if isinstance(logdir, str):
       logdir = pathlib.Path(logdir)
     self.logdir = logdir
     self.logdir.mkdir(parents=True, exist_ok=True)
-    self.fps = fps
     self.workers = workers
     self.rng = np.random.default_rng(seed=None)
     self.fmts = FORMATS
