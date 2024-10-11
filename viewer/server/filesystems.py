@@ -25,7 +25,8 @@ class Local:
 class Elements:
 
   def list(self, path):
-    return list(elements.Path(path).glob('*'))
+    paths = elements.Path(path).glob('*')
+    return [str(x) for x in paths]
 
   def size(self, path):
     return elements.Path(path).size

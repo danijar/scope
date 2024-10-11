@@ -32,7 +32,7 @@
   flex: 0 0 content;
   display: inline-block;
   cursor: pointer;
-  padding: .3rem;
+  padding: .2rem;
   border-radius: .3rem;
   transition: background-color .1s;
   color: var(--fg2);
@@ -49,6 +49,7 @@
 .v-enter-from, .v-leave-to { opacity: 0; }
 
 .spinner {
+  color: var(--fg3);
   height: 24px; width: 24px;
   animation: spinner 1.5s infinite linear running;
 }
@@ -58,28 +59,33 @@
 }
 
 .app {
-  --bg1: #fff;
-  --bg2: #eee;
-  --bg3: #ddd;
   --fg1: #000;
   --fg2: #333;
   --fg3: #999;
+  --bg1: #fff;
+  --bg2: #f5f5f5;
+  --bg3: #eee;
+  --br: #ddd;
 }
 
 .app.dark {
   color-scheme: dark;
-  --fg1: #eee;
+  --fg1: #ddd;
   --fg2: #ccc;
-  --fg3: #aaa;
-  --bg1: #222;
-  --bg2: #111;
-  --bg3: #333;
+  --fg3: #999;
+  --bg1: #333;
+  --bg2: #222;
+  --bg3: #111;
+  --br: #444;
 }
 
+.app { background: var(--bg1); }
 .dark .logo { filter: invert(); }
 .dark .btn:hover { background: var(--bg3); }
 .dark .btn:active { background: var(--bg2); }
 
-* {
-  scrollbar-color: rgba(127, 127, 127, 0.3) transparent;
-}
+* { scrollbar-color: rgba(127, 127, 127, 0.3) transparent; }
+
+h2 { font-size: 1.3rem; font-weight: 500; color: var(--fg1); }
+input { font-family: monospace; }
+
