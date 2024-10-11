@@ -15,7 +15,7 @@ const pendingFiles = ref(new Set())
 const cols = computed(() => {
   return props.cols
     .filter(colid => colid in store.availableCols.value)
-    .sort()
+    .sort().toReversed()
     .map(colid => store.availableCols.value[colid])
 })
 

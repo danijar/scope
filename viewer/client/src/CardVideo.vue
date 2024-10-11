@@ -12,7 +12,7 @@ const props = defineProps({
 const cols = computed(() => {
   return props.cols
     .filter(colid => colid in store.availableCols.value)
-    .sort()
+    .sort().toReversed()
     .map(colid => store.availableCols.value[colid])
 })
 
@@ -75,11 +75,11 @@ function toggleFullsize() {
   </template>
 
   <template #default>
-    <div v-for="entry in entries" v-key="entry.url" class="entry" :class="{ origSize }">
+    <div v-for="entry in entries" :key="entry.url" class="entry" :class="{ origSize }">
       <h3> {{ entry.run }}</h3>
       <span class="count">Count: {{ entry.steps.length }}</span>
       <span class="step">Step: {{ entry.steps[entry.steps.length - 1] }}</span><br>
-      <video controls loop :key="entry.url" v-if="entry.steps.length">
+      <video controls loop v-if="entry.steps.length">
         <source :src="entry.url">
       </video>
     </div>

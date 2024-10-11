@@ -23,7 +23,7 @@ watch(() => state.selected, () => {
 })
 
 const itemsSorted = computed(() => {
-  return props.items.sort()
+  return props.items.sort().toReversed()
 })
 
 const itemsSet = computed(() => {
