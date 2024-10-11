@@ -149,8 +149,8 @@ h2 { flex: 1 0 content; margin: 0 .1rem .5rem; }
 .list { flex: 1 1 content; overflow: scroll; }
 ul { list-style: none; padding: 0; margin: 0 0 .5rem; }
 
-li { display: flex; align-items: center; cursor: pointer; line-height: 1; font-family: monospace; border-radius: .2rem; color: var(--fg2); }
-li div { display: 1 1 content; padding: .3rem; white-space: nowrap; }
+li { display: flex; align-items: center; cursor: pointer; line-height: 1; font-family: monospace; border-radius: .4rem; color: var(--fg2); padding: .2rem; padding-left: .1rem; }
+li div { padding-left: .3rem; white-space: nowrap; }
 li:hover { background: var(--bg2); }
 
 .missing { color: var(--fg3); }

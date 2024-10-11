@@ -45,7 +45,7 @@ const state = reactive({
   background: var(--bg2);
   border: none;
   padding: .35rem .4rem .25rem;
-  border-radius: .3rem;
+  border-radius: .5rem;
 }
 
 input { border: none; background: transparent; margin: 0; padding: 0 .3rem; }

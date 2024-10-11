@@ -32,8 +32,8 @@
   flex: 0 0 content;
   display: inline-block;
   cursor: pointer;
-  padding: .2rem;
-  border-radius: .3rem;
+  padding: .3rem;
+  border-radius: .5rem;
   transition: background-color .1s;
   color: var(--fg2);
 }
@@ -70,9 +70,9 @@
 
 .app.dark {
   color-scheme: dark;
-  --fg1: #ddd;
-  --fg2: #ccc;
-  --fg3: #999;
+  --fg1: #eee;
+  --fg2: #ddd;
+  --fg3: #aaa;
   --bg1: #333;
   --bg2: #222;
   --bg3: #111;

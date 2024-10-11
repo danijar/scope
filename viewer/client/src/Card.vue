@@ -54,5 +54,6 @@ h2 { flex: 1 1 content; margin: 0; }
 .buttons { flex: 0 0 content; margin: -.3rem; margin-left: 0; }
 
 .zoom.card { position: absolute; height: inherit; max-height: inherit; aspect-ratio: auto; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }
+.zoom.card { border: 2px solid var(--br); }
 
 </style>

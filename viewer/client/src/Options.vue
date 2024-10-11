@@ -10,8 +10,8 @@ import InputText from './InputText.vue'
 // })
 
 const state = reactive({
-  binsize: null,
-  stepsel: null,
+  binsize: '',
+  stepsel: '',
 })
 
 </script>
@@ -31,7 +31,7 @@ const state = reactive({
 <style scoped>
 .options { display: flex; flex-direction: column; }
 
-h2 { margin: 0 0 .8rem; }
+h2 { margin: 0 0 .9rem; }
 
 .input { margin: 0 0 .5rem; }
 

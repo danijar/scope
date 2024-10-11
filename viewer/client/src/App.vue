@@ -66,7 +66,7 @@ function toggleLayout() {
     <div class="right layoutCol">
       <Selector
         :items="store.availableExps.value" v-model="store.selExps.value"
-        :loading="!!store.pendingEids.value" title="Experiments" class="selector" />
+        :loading="!!store.pendingEids.value" title="Folders" class="selector" />
       <Selector
         :items="store.availableRuns.value" v-model="store.selRuns.value"
         :loading="!!store.pendingExps.value.size" title="Runs" class="selector" />
@@ -87,7 +87,7 @@ function toggleLayout() {
 
 .app { height: 100vh; width: 100vw; background: var(--bg1); color: var(--fg1); }
 .header { flex: 0 0 content; align-items: center; padding: 1rem; user-select: none; }
-.footer { flex: 0 0 3rem; align-items: center; padding: 1rem; border-top: 2px solid var(--bg2); }
+.footer { flex: 0 0 3rem; align-items: center; padding: 1rem; }
 .content { flex: 1 1; }
 
 .center { flex: 1 1 20rem; overflow: auto; background: var(--bg3); }
@@ -102,8 +102,8 @@ function toggleLayout() {
 .spacer { flex: 1 1 0; }
 
 .cards { --columns: v-bind(settings.columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; }
-.card { height: 30rem; max-height: 80vh; border: 1px solid var(--br); }
+.card { height: 30rem; max-height: 80vh; border-radius: .5rem; }
 
-.header, .selector, .options { border-bottom: 2px solid var(--bg3); }
+.header, .selector, .options { border-bottom: .2rem solid var(--bg3); }
 
 </style>
