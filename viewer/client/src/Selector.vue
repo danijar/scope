@@ -128,7 +128,7 @@ function unselectAll() {
     <ul>
       <li v-for="entry in availableEntries" @click="toggle(entry.item)"
           :class="{ selected: entry.selected, missing: entry.missing }">
-        <span v-if="entry.selected" class="icon">check_box</span>
+        <span v-if="entry.selected" class="icon filled">check_box</span>
         <span v-else class="icon">check_box_outline_blank</span>
         <div v-html="entry.name"></div>
       </li>

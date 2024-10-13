@@ -25,6 +25,8 @@
   vertical-align: middle;
 }
 
+.icon.filled { font-variation-settings: 'FILL' 1; }
+
 .icon { opacity: 0; }
 .icon-font-loaded .icon { opacity: inherit; }
 
