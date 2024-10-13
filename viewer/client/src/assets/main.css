@@ -83,8 +83,6 @@
 
 .app { background: var(--bg1); }
 .dark .logo { filter: invert(); }
-.dark .btn:hover { background: var(--bg3); }
-.dark .btn:active { background: var(--bg2); }
 
 * { scrollbar-color: rgba(127, 127, 127, 0.3) transparent; }
 

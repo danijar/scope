@@ -124,16 +124,15 @@ function unselectAll() {
     <span class="btn icon" @click="selectAll" title="Select 10 more">check</span>
     <span class="btn icon" @click="unselectAll" title="Unselect all">close</span>
   </div>
-  <div class="list">
-    <ul>
-      <li v-for="entry in availableEntries" @click="toggle(entry.item)"
-          :class="{ selected: entry.selected, missing: entry.missing }">
+  <div class="list layoutCol">
+    <div v-for="entry in availableEntries" @click="toggle(entry.item)"
+        :class="{ selected: entry.selected, missing: entry.missing }">
+      <div class="entry">
         <span v-if="entry.selected" class="icon filled">check_box</span>
         <span v-else class="icon">check_box_outline_blank</span>
-        <div v-html="entry.name"></div>
-      </li>
-    </ul>
-
+        <span v-html="entry.name" class="name"></span>
+      </div>
+    </div>
   </div>
 </div>
 </template>
@@ -148,12 +147,11 @@ h2 { flex: 1 0 content; margin: 0 .1rem .5rem; }
 .inputs { flex: 0 0 content; align-items: center; padding: 0 .5rem .4rem 0; }
 .input { margin-right: .3rem; }
 
-.list { flex: 1 1 content; overflow: scroll; }
-ul { list-style: none; padding: 0; margin: 0 0 .5rem; }
+.list { flex: 1 1 content; overflow-y: auto; margin: 0 0 1rem; padding: 0 1rem 0 0; }
 
-li { display: flex; align-items: center; cursor: pointer; line-height: 1; font-family: monospace; border-radius: .4rem; color: var(--fg2); padding: .2rem; padding-left: .1rem; }
-li div { padding-left: .3rem; white-space: nowrap; }
-li:hover { background: var(--bg2); }
+.entry { display: inline-flex; align-items: center; cursor: pointer; line-height: 1; font-family: monospace; border-radius: .4rem; color: var(--fg2); padding: .2rem .3rem .2rem .1rem; }
+.entry:hover { background: var(--bg2); }
+.name { padding-left: .3rem; word-break: break-word; }
 
 .missing { color: var(--fg3); }
 
