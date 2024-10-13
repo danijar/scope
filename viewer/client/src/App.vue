@@ -47,7 +47,7 @@ function toggleLayout() {
 
     <div class="center">
       <div class="cards">
-        <template v-for="card in store.availableCards.value" :key="card.met">
+        <template v-for="card in store.availableCards.value" :key="card.name">
           <CardFloat
             v-if="card.ext == 'float'"
             :name="card.name" :cols="card.cols" class="card" />
@@ -65,7 +65,7 @@ function toggleLayout() {
 
     <div class="right layoutCol">
       <Selector
-        :items="store.availableExps.value" v-model="store.selExps.value"
+        :items="store.availableExps.value" v-model="store.selExps.value" :reverse="true"
         :loading="!!store.pendingEids.value" title="Folders" class="selector" />
       <Selector
         :items="store.availableRuns.value" v-model="store.selRuns.value"
@@ -101,7 +101,7 @@ function toggleLayout() {
 .options { flex: 1 1 0; padding: 1rem; }
 .spacer { flex: 1 1 0; }
 
-.cards { --columns: v-bind(settings.columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; }
+.cards { --columns: v-bind(settings.columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; padding-top: .8rem; }
 .card { height: 30rem; max-height: 80vh; border-radius: .5rem; }
 
 .header, .selector, .options { border-bottom: .2rem solid var(--bg3); }

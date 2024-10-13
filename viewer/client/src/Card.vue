@@ -50,7 +50,7 @@ function toggleZoom() {
 .scrollX { overflow-x: scroll; margin-bottom: 0; padding-bottom: 1rem; }
 .scrollY { overflow-y: auto; margin-right: 0; padding-right: 1rem; }
 
-h2 { flex: 1 1 content; margin: 0; }
+h2 { flex: 1 1 content; margin: 0; word-break: break-word; }
 .buttons { flex: 0 0 content; margin: -.3rem; margin-left: 0; }
 
 .zoom.card { position: absolute; height: inherit; max-height: inherit; aspect-ratio: auto; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }

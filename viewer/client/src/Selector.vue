@@ -7,6 +7,7 @@ const props = defineProps({
   title: { type: String, default: '' },
   items: { type: Array, required: true },
   loading: { type: Boolean, default: false },
+  reverse: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['select', 'unselect'])
@@ -23,7 +24,8 @@ watch(() => state.selected, () => {
 })
 
 const itemsSorted = computed(() => {
-  return props.items.sort().toReversed()
+  const sorted = props.items.sort()
+  return props.reverse ? sorted.toReversed() : sorted
 })
 
 const itemsSet = computed(() => {
