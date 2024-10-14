@@ -168,6 +168,17 @@ setTimeout(() => {
 }, 200)
 
 /*****************************************************************************
+ * Other
+ *****************************************************************************/
+
+const options = reactive(loadStorage('options', {
+  binsize: null,
+  stepsel: null,
+}))
+
+watch(() => options, x => saveStorage('options', x), { deep: true })
+
+/*****************************************************************************
  * Export
  *****************************************************************************/
 
@@ -199,6 +210,8 @@ const store = {
   availableMets,
   availableCards,
   availableCols,
+
+  options,
 
 }
 

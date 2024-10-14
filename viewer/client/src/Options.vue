@@ -1,7 +1,8 @@
 <script setup>
 
-import { reactive, computed, watch } from 'vue'
+import { reactive, computed, watch, ref } from 'vue'
 import InputText from './InputText.vue'
+import store from './store.js'
 
 // const props = defineProps({
 //   title: { type: String, default: '' },
@@ -10,9 +11,12 @@ import InputText from './InputText.vue'
 // })
 
 const state = reactive({
-  binsize: '',
-  stepsel: '',
+  binsize: store.options.binsize ? store.options.binsize.toString() : '',
+  stepsel: store.options.stepsel ? store.options.stepsel.toString() : '',
 })
+
+watch(() => state.binsize, x => store.options.binsize = x ? parseFloat(x) : null)
+watch(() => state.stepsel, x => store.options.stepsel = x ? parseInt(x) : null)
 
 </script>
 

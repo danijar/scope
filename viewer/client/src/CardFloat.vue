@@ -2,6 +2,7 @@
 
 import { reactive, computed, watch, onMounted, ref, useTemplateRef } from 'vue'
 import store from './store.js'
+import { reactiveCache } from './cache.js'
 import { Chart } from 'chart.js'
 import { getRelativePosition } from 'chart.js/helpers'
 import Card from './Card.vue'
@@ -11,12 +12,59 @@ const props = defineProps({
   cols: { type: Array, required: true },
 })
 
-const cols = computed(() => {
+const availableCols = computed(() => {
   return props.cols
     .filter(colid => colid in store.availableCols.value)
-    .sort().toReversed()
-    .map(colid => store.availableCols.value[colid])
 })
+
+const datasetsCache = reactiveCache(colid => {
+  const col = store.availableCols.value[colid]
+  let data = col.steps.map((step, j) => ({ x: step, y: col.values[j]}))
+  const mean = (vals) => vals.reduce((a, b) => a + b) / vals.length
+  if (store.options.binsize)
+    data = binning(data, store.options.binsize, mean)
+  return {
+    label: col.run,
+    data: data,
+    fill: false,
+    pointRadius: 0,
+    borderWidth: 1,
+    col: col,
+  }
+})
+
+watch(() => availableCols, () => {
+  datasetsCache.setTo(availableCols.value)
+}, { deep: true, immediate: true })
+watch(() => store.options.binsize, () => datasetsCache.refresh(), { deep: true })
+
+const datasetsList = computed(() => {
+  return props.cols
+    .filter(colid => colid in datasetsCache.value)
+    .map(colid => datasetsCache.value[colid])
+    .map((col, i) => ({ ...col, borderColor: colors[i % colors.length] }))
+})
+
+// const datasets = computed(() => {
+//   return cols.value
+//     .filter(col => col.steps.length > 0)
+//     .map((col, i) => ({
+//       label: col.run,
+//       data: col.steps.map((step, j) => ({ x: step, y: col.values[j]})),
+//       fill: false,
+//       pointRadius: 0,
+//       borderColor: colors[i % colors.length],
+//       borderWidth: 1,
+//       col: col,
+//     }))
+// })
+
+// const cols = computed(() => {
+//   return props.cols
+//     .filter(colid => colid in store.availableCols.value)
+//     .sort().toReversed()
+//     .map(colid => store.availableCols.value[colid])
+// })
 
 const loading = computed(() => {
   return props.cols
@@ -44,22 +92,8 @@ const colors = [
   '#999999',
 ]
 
-const datasets = computed(() => {
-  return cols.value
-    .filter(col => col.steps.length > 0)
-    .map((col, i) => ({
-      label: col.run,
-      data: col.steps.map((step, j) => ({ x: step, y: col.values[j]})),
-      fill: false,
-      pointRadius: 0,
-      borderColor: colors[i % colors.length],
-      borderWidth: 1,
-      col: col,
-    }))
-})
-
 const legend = computed(() => {
-  return datasets.value.map(dataset => {
+  return datasetsList.value.map(dataset => {
     const index = bisectNearest(dataset.col.steps, mouseXY.value[0])
     const step = dataset.col.steps[index]
     const value = dataset.col.values[index]
@@ -90,12 +124,12 @@ onMounted(() => {
   updateChart()
 })
 
-watch(() => datasets, () => updateChart(), { deep: 2 })
+watch(() => datasetsList, () => updateChart(), { deep: 2 })
 
 function updateChart() {
   if (chart[0] === null)
     return
-  chart[0].data.datasets = datasets.value.slice()
+  chart[0].data.datasets = datasetsList.value.slice()
   chart[0].update()
 }
 
@@ -168,6 +202,32 @@ function bisectNearest(array, target) {
   return (array[lo] - target) < (target - array[hi]) ? lo : hi
 }
 
+function binning(data, binsize, aggFn) {
+  const result = []
+
+  result.push({ x: data[0].x, y: null })
+
+  let prev = null
+  let curr = null
+  let vals = []
+  for (const [i, point] of data.entries()) {
+    curr = (Math.round(point.x / binsize) + 0.5) * binsize
+    if (curr !== prev) {
+      if (vals.length)
+        result.push({ x: prev, y: aggFn(vals) })
+      vals.length = 0
+      prev = curr
+    }
+    vals.push(point.y)
+  }
+  if (vals.length)
+    result.push({ x: prev, y: aggFn(vals) })
+
+  result.push({ x: data[data.length - 1].x, y: null })
+
+  return result
+}
+
 </script>
 
 <template>
@@ -207,4 +267,6 @@ function bisectNearest(array, target) {
 .entry div:nth-child(4) { flex: 0 0 10ch; padding-right: .5rem; text-align: right; }
 
 </style>
+
+
 

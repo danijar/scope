@@ -47,8 +47,8 @@
 .layoutRow { display: flex; overflow: hidden; flex-direction: row; }
 .fill { flex: 1 1; }
 
-.v-enter-active, .v-leave-active { transition: opacity 0.5s ease; }
-.v-enter-from, .v-leave-to { opacity: 0; }
+.v-enter-active, .v-leave-active { transition: opacity 0.5s ease !important; }
+.v-enter-from, .v-leave-to { opacity: 0 !important; }
 
 .spinner {
   color: var(--fg3);
@@ -56,8 +56,8 @@
   animation: spinner 1.5s infinite linear running;
 }
 @keyframes spinner {
-    from { transform:rotate(0deg); }
-    to { transform:rotate(360deg); }
+  from { transform:rotate(0deg); }
+  to { transform:rotate(360deg); }
 }
 
 .app {
