@@ -1,5 +1,7 @@
-export function saveStorage(key, value) {
-  if (value.length === 0)
+export function saveStorage(key, value, allowEmpty = false) {
+  if (key.length == 0)
+    return fallback
+  if (value.length === 0 && !allowEmpty)
     return
   let entry = { type: null, value: value }
   if (value instanceof Set)
@@ -9,6 +11,8 @@ export function saveStorage(key, value) {
 }
 
 export function loadStorage(key, fallback) {
+  if (key.length == 0)
+    return fallback
   const entry = JSON.parse(localStorage.getItem(key))
   if (entry === null)
     return fallback

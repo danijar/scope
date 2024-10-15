@@ -43,16 +43,19 @@ function toggleLayout() {
     <div class="right layoutCol">
       <Selector
         :items="store.availableExps.value" v-model="store.selExps.value" :reverse="true"
-        :loading="!!store.pendingEids.value" title="Folders" class="selector" />
+        :loading="!!store.pendingEids.value" storageKey="selectorFolders"
+        title="Folders" class="selector" />
       <Selector
         :items="store.availableRuns.value" v-model="store.selRuns.value"
-        :loading="!!store.pendingExps.value.size" title="Runs" class="selector" />
+        :loading="!!store.pendingExps.value.size" storageKey="selectorRuns"
+        title="Runs" class="selector" />
     </div>
 
     <div class="left layoutCol">
       <Selector
         :items="store.availableMets.value" v-model="store.selMets.value"
-        :loading="!!store.pendingRuns.value.size" title="Metrics" class="selector" />
+        :loading="!!store.pendingRuns.value.size" storageKey="selectorMets"
+        title="Metrics" class="selector" />
       <Options class="options"/>
       <!-- <div class="spacer"></div> -->
     </div>

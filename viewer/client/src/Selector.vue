@@ -1,6 +1,7 @@
 <script setup>
 
 import { reactive, computed, watch } from 'vue'
+import { saveStorage, loadStorage } from './storage.js'
 import InputText from './InputText.vue'
 
 const props = defineProps({
@@ -8,6 +9,7 @@ const props = defineProps({
   items: { type: Array, required: true },
   loading: { type: Boolean, default: false },
   reverse: { type: Boolean, default: false },
+  storageKey: { type: String, default: '' },
 })
 
 const emit = defineEmits(['select', 'unselect'])
@@ -16,12 +18,12 @@ const model = defineModel({ type: Set, required: true })
 
 const state = reactive({
   selected: model.value,
-  pattern: '',
+  pattern: loadStorage(props.storageKey, ''),
 })
 
-watch(() => state.selected, () => {
-  model.value = state.selected
-})
+watch(() => state.selected, () => { model.value = state.selected })
+
+watch(() => state.pattern, x => saveStorage(props.storageKey, x, true))
 
 const itemsSorted = computed(() => {
   const sorted = props.items.sort()
@@ -31,27 +33,6 @@ const itemsSorted = computed(() => {
 const itemsSet = computed(() => {
   return new Set(props.items)
 })
-
-// const matches = computed(() => {
-//   // RegExp objects are stateful and can only be used once.
-//   const pattern = state.pattern || '.*'
-//   return itemsSorted.value
-//     .filter(x => !(state.selected.has(x)))
-//     .filter(x => (new RegExp(pattern, 'g')).test(x))
-// })
-
-// const selectedDisplay = computed(() => {
-//   const optionsSet = new Set(props.items)
-//   return [...state.selected]
-//     .map(x => ({ item: x, available: optionsSet.has(x) }))
-//     .sort((a, b) => a.item.localeCompare(b.item)
-// })
-//
-// const matchesDisplay = computed(() => {
-//   return [...matches.value]
-//     .filter(x => !state.selected.has(x))
-//     .sort((a, b) => a.localeCompare(b))
-// })
 
 const availableEntries = computed(() => {
   const missing = [...state.selected]
