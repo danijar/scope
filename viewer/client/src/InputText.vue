@@ -25,7 +25,7 @@ const state = reactive({
     <span v-if="props.labelIcon" class="icon">{{ props.labelIcon }}</span>
     {{ props.label }}
   </p>
-  <div class="field layoutRow">
+  <div class="field smooth layoutRow">
     <span v-if="props.insetIcon" class="icon">{{ props.insetIcon }}</span>
     <input
       v-model="model"
@@ -44,9 +44,11 @@ const state = reactive({
   color: var(--fg3);
   background: var(--bg2);
   border: none;
-  padding: .35rem .4rem .25rem;
+  padding: .4rem .4rem .3rem;
   border-radius: .5rem;
 }
+
+.field:focus-within { background: var(--bg3); }
 
 input { border: none; background: transparent; margin: 0; padding: 0 .3rem; }
 input { color: var(--fg2); }
@@ -56,7 +58,7 @@ input:focus { outline: none; }
 input { text-align: v-bind(props.align); }
 
 .label .icon { margin: -.3rem .5rem -.3rem 0; }
-.field .icon { font-size: 1.2em; color: var(--fg3); }
+.field .icon { font-size: 1.5rem; color: var(--fg3); }
 
 </style>
 

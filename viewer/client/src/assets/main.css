@@ -1,5 +1,44 @@
 @import './base.css';
 
+*, *::before, *::after {
+  box-sizing: border-box;
+  font-weight: normal;
+  margin: 0;
+}
+
+label, input, button {
+  font-size: 1rem;
+  min-width: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  line-height: 1;
+}
+
+input:focus, button:focus {
+  outline: none;
+}
+
+html, body {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+  font-size: 14px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 @font-face {
   font-family: 'Material Symbols Outlined';
   font-style: normal;
@@ -34,20 +73,25 @@
   flex: 0 0 content;
   display: inline-block;
   cursor: pointer;
-  padding: .3rem;
+  padding: .4rem;
   border-radius: .5rem;
-  transition: background-color .1s;
   color: var(--fg2);
+  border: none;
+  background-color: transparent;
 }
-.btn:hover { background: var(--bg2); }
+.btn:hover, .btn:focus { background-color: var(--bg2); outline: none; }
 .btn:active { background: var(--bg3); }
 .btn + .btn { margin-left: .1rem; }
+
+.btn, .smooth {
+  transition: background-color .1s linear, color .1s linear;
+}
 
 .layoutCol { display: flex; overflow: hidden; flex-direction: column; }
 .layoutRow { display: flex; overflow: hidden; flex-direction: row; }
 .fill { flex: 1 1; }
 
-.v-enter-active, .v-leave-active { transition: opacity 0.5s ease !important; }
+.v-enter-active, .v-leave-active { transition: opacity .5s ease !important; }
 .v-enter-from, .v-leave-to { opacity: 0 !important; }
 
 .spinner {
@@ -68,6 +112,7 @@
   --bg2: #f5f5f5;
   --bg3: #eee;
   --br: #ddd;
+  --focus: #00aaff;
 }
 
 .app.dark {
@@ -79,6 +124,7 @@
   --bg2: #222;
   --bg3: #111;
   --br: #444;
+  --focus: #00aaff;
 }
 
 .app { background: var(--bg1); }
@@ -86,6 +132,9 @@
 
 * { scrollbar-color: rgba(127, 127, 127, 0.3) transparent; }
 
-h2 { font-size: 1.3rem; font-weight: 500; color: var(--fg1); }
+h2 { font-size: 1.4rem; font-weight: 500; color: var(--fg1); }
 input { font-family: monospace; }
 
+/* *[tabindex="0"] { background: green !important; } */
+/* *[tabindex="-1"] { background: red !important; } */
+/* *:focus { outline: solid !important; } */

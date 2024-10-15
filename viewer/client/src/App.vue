@@ -3,6 +3,7 @@
 import { reactive, computed, watch, onMounted, ref, toRef } from 'vue'
 import { saveStorage, loadStorage } from './storage.js'
 import store from './store.js'
+import { handleKeydown } from './keynav.js'
 
 import Selector from './Selector.vue'
 import Options from './Options.vue'
@@ -25,17 +26,28 @@ function toggleLayout() {
 </script>
 
 <template>
-<div class="app layoutCol" :class="{ dark: settings.dark }">
-  <div class="header layoutRow">
+<div class="app layoutCol" :class="{ dark: settings.dark }" @keydown="handleKeydown">
+  <div class="header layoutRow focusgroup">
     <span class="logo"></span>
     <h1>Scope</h1>
     <span class="fill"></span>
-    <span class="btn icon" @click="store.refresh" title="Refresh">refresh</span>
-    <span class="btn icon" @click="toggleLayout" title="Change layout">view_column</span>
-    <span class="btn icon" @click="settings.dark = true" v-if="!settings.dark" title="Dark mode">dark_mode</span>
-    <span class="btn icon" @click="settings.dark = false" v-if="settings.dark" title="Light mode">light_mode</span>
+    <button class="btn icon" @click="store.refresh" title="Refresh">refresh</button>
+    <button class="btn icon" @click="toggleLayout" title="Change layout">view_column</button>
+    <button
+      class="btn icon" @click="settings.dark = !settings.dark"
+      :title="settings.dark ? 'Light mode' : 'Dark mode'">
+      {{ settings.dark ? 'light_mode' : 'dark_mode' }}</button>
   </div>
   <div class="content layoutRow">
+
+    <div class="right layoutCol">
+      <Selector
+        :items="store.availableExps.value" v-model="store.selExps.value" :reverse="true"
+        :loading="!!store.pendingEids.value" title="Folders" class="selector" />
+      <Selector
+        :items="store.availableRuns.value" v-model="store.selRuns.value"
+        :loading="!!store.pendingExps.value.size" title="Runs" class="selector" />
+    </div>
 
     <div class="left layoutCol">
       <Selector
@@ -46,7 +58,7 @@ function toggleLayout() {
     </div>
 
     <div class="center">
-      <div class="cards">
+      <div class="cards focusgroup" :focusCols="settings.columns">
         <template v-for="card in store.availableCards.value" :key="card.name">
           <CardFloat
             v-if="card.ext == 'float'"
@@ -63,14 +75,6 @@ function toggleLayout() {
       </div>
     </div>
 
-    <div class="right layoutCol">
-      <Selector
-        :items="store.availableExps.value" v-model="store.selExps.value" :reverse="true"
-        :loading="!!store.pendingEids.value" title="Folders" class="selector" />
-      <Selector
-        :items="store.availableRuns.value" v-model="store.selRuns.value"
-        :loading="!!store.pendingExps.value.size" title="Runs" class="selector" />
-    </div>
   </div>
 
   <!-- <div class="footer"> -->
@@ -92,6 +96,10 @@ function toggleLayout() {
 
 .center { flex: 1 1 20rem; overflow: auto; background: var(--bg3); }
 .left, .right { flex: 0 1 20rem; max-width: 20%; }
+
+.left { order: 1; }
+.center { order: 2; }
+.right { order: 3; }
 
 .header .logo { display: inline-block; padding-left: 1.3em; width: 1em; height: 1em; font-size: 1.8rem; background: url(/logo.png) no-repeat; background-size: contain; }
 .header h1 { font-size: 1.8rem; font-weight: 500; line-height: 1; }

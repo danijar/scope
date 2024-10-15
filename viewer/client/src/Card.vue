@@ -21,8 +21,8 @@ function toggleZoom() {
 
 <template>
 <div
-  class="card layoutCol" :class="{ zoom: state.zoom }"
-  tabindex="0" @keydown.f.exact.prevent="toggleZoom" @keydown.esc.prevent="state.zoom = false">
+  class="card layoutCol focusable" :class="{ zoom: state.zoom, focusgroup: state.zoom }"
+  @keydown.f.exact.prevent="toggleZoom" @keydown.esc.prevent="state.zoom = false">
   <div class="header">
     <h2>{{ props.name }}</h2>
     <Transition>
@@ -51,9 +51,11 @@ function toggleZoom() {
 .scrollY { overflow-y: auto; margin-right: 0; padding-right: 1rem; }
 
 h2 { flex: 1 1 content; margin: 0; word-break: break-word; }
-.buttons { flex: 0 0 content; margin: -.3rem; margin-left: 0; }
+.buttons { flex: 0 0 content; margin: -.4rem; margin-left: 0; }
 
 .zoom.card { position: absolute; height: inherit; max-height: inherit; aspect-ratio: auto; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }
-.zoom.card { border: 2px solid var(--br); }
+
+.zoom.card { outline: 2px solid var(--br); }
+.card:focus { outline: 2px solid var(--focus); }
 
 </style>

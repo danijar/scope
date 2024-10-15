@@ -79,7 +79,7 @@ function toggleFullsize() {
       <h3> {{ entry.run }}</h3>
       <span class="count">Count: {{ entry.steps.length }}</span>
       <span class="step">Step: {{ entry.steps[entry.steps.length - 1] }}</span><br>
-      <video controls loop v-if="entry.steps.length">
+      <video controls loop v-if="entry.steps.length" tabindex="-1">
         <source :src="entry.url">
       </video>
     </div>
