@@ -132,7 +132,7 @@ class Video:
     T, H, W, _ = value.shape
     fp = io.BytesIO()
     output = av.open(fp, mode='w', format=self.ext)
-    stream = output.add_stream(self.codec, rate=float(self.fps))
+    stream = output.add_stream(self.codec, rate=self.fps)
     stream.width = W
     stream.height = H
     stream.pix_fmt = 'yuv420p'
