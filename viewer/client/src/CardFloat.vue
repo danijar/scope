@@ -75,29 +75,34 @@ const colors = [
 ]
 
 const legend = computed(() => {
-  return datasetsList.value.map(dataset => {
-    const index = bisectNearest(dataset.col.steps, mouseXY.value[0])
-    const step = dataset.col.steps[index]
-    const value = dataset.col.values[index]
-    const formattedStep = step.toLocaleString('en-US')
-    let formattedValue
-    if (0.01 <= Math.abs(value) && Math.abs(value) <= 10000)
-      formattedValue = value.toFixed(3)
-    else
-      formattedValue = value.toExponential(2)
-    return {
-      run: dataset.label,
-      color: dataset.borderColor,
-      step: step,
-      value: value,
-      formattedStep: formattedStep,
-      formattedValue: formattedValue,
-    }
-  }).sort((a, b) => {
-    const distA = Math.abs(a.value - mouseXY.value[1])
-    const distB = Math.abs(b.value - mouseXY.value[1])
-    return distA - distB
-  })
+  return datasetsList.value
+    .map(dataset => {
+      const index = bisectNearestX(dataset.data, mouseXY.value[0])
+      if (index === null)
+        return null
+      const step = dataset.data[index].x
+      const value = dataset.data[index].y
+      const formattedStep = step.toLocaleString('en-US')
+      let formattedValue
+      if (0.01 <= Math.abs(value) && Math.abs(value) <= 10000)
+        formattedValue = value.toFixed(3)
+      else
+        formattedValue = value.toExponential(2)
+      return {
+        run: dataset.label,
+        color: dataset.borderColor,
+        step: step,
+        value: value,
+        formattedStep: formattedStep,
+        formattedValue: formattedValue,
+      }
+    })
+    .filter(entry => entry !== null)
+    .sort((a, b) => {
+      const distA = Math.abs(a.value - mouseXY.value[1])
+      const distB = Math.abs(b.value - mouseXY.value[1])
+      return distA - distB
+    })
 })
 
 onMounted(() => {
@@ -166,12 +171,21 @@ function createChart(canvas) {
   })
 }
 
-function bisectNearest(array, target) {
+function bisectNearestX(data, target, trimNull = true) {
+  // This function is more complex that one would expect, because the ChartJS
+  // crosshair plugin modifies the data lists in-place. We don't know exactly
+  // what they do, but can be null values that we handle below.
   let lo = 0
-  let hi = array.length - 1
+  let hi = data.length - 1
+  if (trimNull) {
+    while (lo < data.length - 1 && lo < hi && data[lo].y === null) lo++
+    while (hi > 0 && hi > lo && data[hi].y === null) hi--
+  }
+  if (!(lo < hi))
+    return null
   while (lo <= hi) {
     const mid = Math.floor((lo + hi) / 2)
-    const val = array[mid]
+    const val = data[mid].x
     if (target > val)
       lo = mid + 1
     else if (target < val)
@@ -179,15 +193,18 @@ function bisectNearest(array, target) {
     else
       return mid
   }
-  lo = Math.max(0, Math.min(lo, array.length - 1))
-  hi = Math.max(0, Math.min(hi, array.length - 1))
-  return (array[lo] - target) < (target - array[hi]) ? lo : hi
+  lo = Math.max(0, Math.min(lo, data.length - 1))
+  hi = Math.max(0, Math.min(hi, data.length - 1))
+  let index = (data[lo] - target) < (target - data[hi]) ? lo : hi
+  while (index < data.length && data[index].y === null) index++
+  return index < data.length ? index : null
 }
 
-function binning(data, binsize, aggFn) {
+function binning(data, binsize, aggFn, nullLimits = true) {
   const result = []
 
-  result.push({ x: data[0].x, y: null })
+  if (nullLimits)
+    result.push({ x: data[0].x, y: null })
 
   let prev = null
   let curr = null
@@ -205,7 +222,8 @@ function binning(data, binsize, aggFn) {
   if (vals.length)
     result.push({ x: prev, y: aggFn(vals) })
 
-  result.push({ x: data[data.length - 1].x, y: null })
+  if (nullLimits)
+    result.push({ x: data[data.length - 1].x, y: null })
 
   return result
 }
