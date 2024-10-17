@@ -23,10 +23,23 @@ function toggleLayout() {
   settings.columns = settings.columns % 5 + 1
 }
 
+const keyboardMode = ref(false)
+
+// The listener needs to be global, because the app element is not focused on
+// page load, before the user focuses an element.
+document.addEventListener('keydown', (e) => {
+  if (e.key == 'Tab')
+    keyboardMode.value = true
+  handleKeydown(e)
+})
+document.addEventListener('mousedown', (e) => {
+  keyboardMode.value = false
+})
+
 </script>
 
 <template>
-<div class="app layoutCol" :class="{ dark: settings.dark }" @keydown="handleKeydown">
+<div class="app layoutCol" :class="{ dark: settings.dark, keyboardMode: keyboardMode }">
   <div class="header layoutRow focusgroup">
     <span class="logo"></span>
     <h1>Scope</h1>

@@ -6,7 +6,6 @@ const optionsSelExclude = '.nofocusgroup, .nofocusgroup *'
 
 let lastG = null
 
-
 export function handleKeydown(e) {
 
   if (e.key == 'Tab') {
@@ -93,4 +92,3 @@ function getOptions(group) {
   return [...group.querySelectorAll(optionsSelInclude)]
       .filter(el => !el.matches(optionsSelExclude))
 }
-

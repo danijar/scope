@@ -25,7 +25,7 @@ const state = reactive({
     <span v-if="props.labelIcon" class="icon">{{ props.labelIcon }}</span>
     {{ props.label }}
   </p>
-  <div class="field smooth layoutRow">
+  <div class="field smooth layoutRow focusOutline">
     <span v-if="props.insetIcon" class="icon">{{ props.insetIcon }}</span>
     <input
       v-model="model"

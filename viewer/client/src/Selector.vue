@@ -107,7 +107,7 @@ function unselectAll() {
   </div>
   <div class="list layoutCol">
     <div v-for="entry in availableEntries">
-      <button class="entry smooth"
+      <button class="entry smooth focusOutline"
            :class="{ selected: entry.selected, missing: entry.missing }"
            @click="toggle(entry.item)"
            @keydown.space.exact.prevent="toggle(entry.item)"

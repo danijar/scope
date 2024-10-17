@@ -36,7 +36,10 @@ const datasetsCache = reactiveCache(colid => {
 watch(() => availableCols, () => {
   datasetsCache.setTo(availableCols.value)
 }, { deep: true, immediate: true })
-watch(() => store.options.binsize, () => datasetsCache.refresh(), { deep: true })
+
+watch(() => store.options.binsize, () => {
+  datasetsCache.refresh()
+}, { deep: true })
 
 const datasetsList = computed(() => {
   return props.cols
@@ -44,27 +47,6 @@ const datasetsList = computed(() => {
     .map(colid => datasetsCache.value[colid])
     .map((col, i) => ({ ...col, borderColor: colors[i % colors.length] }))
 })
-
-// const datasets = computed(() => {
-//   return cols.value
-//     .filter(col => col.steps.length > 0)
-//     .map((col, i) => ({
-//       label: col.run,
-//       data: col.steps.map((step, j) => ({ x: step, y: col.values[j]})),
-//       fill: false,
-//       pointRadius: 0,
-//       borderColor: colors[i % colors.length],
-//       borderWidth: 1,
-//       col: col,
-//     }))
-// })
-
-// const cols = computed(() => {
-//   return props.cols
-//     .filter(colid => colid in store.availableCols.value)
-//     .sort().toReversed()
-//     .map(colid => store.availableCols.value[colid])
-// })
 
 const loading = computed(() => {
   return props.cols
@@ -267,6 +249,3 @@ function binning(data, binsize, aggFn) {
 .entry div:nth-child(4) { flex: 0 0 10ch; padding-right: .5rem; text-align: right; }
 
 </style>
-
-
-
