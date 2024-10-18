@@ -35,7 +35,7 @@ const entries = computed(() => {
 })
 
 const playing = ref(false)
-const origSize = ref(false)
+const largeSize = ref(false)
 
 const root = useTemplateRef('root')
 
@@ -57,25 +57,25 @@ function stopAll() {
   })
 }
 
-function toggleFullsize() {
-  origSize.value = !origSize.value
+function toggleSize() {
+  largeSize.value = !largeSize.value
 }
 
 </script>
 
 <template>
-<Card :name="props.name" :loading="loading" :scrollX="origSize" :scrollY="true" ref="root">
+<Card :name="props.name" :loading="loading" :scrollX="largeSize" :scrollY="true" ref="root">
 
   <template #buttons>
     <span class="btn icon" @click="togglePlayAll" v-if="!playing" title="Play all">play_arrow</span>
     <span class="btn icon" @click="togglePlayAll" v-if="playing" title="Pause all">pause</span>
     <span class="btn icon" @click="stopAll" title="Stop all">stop</span>
-    <span class="btn icon" @click="toggleFullsize" v-if="!origSize" title="Original size">zoom_in</span>
-    <span class="btn icon" @click="toggleFullsize" v-if="origSize" title="Automatic size">zoom_out</span>
+    <span class="btn icon" @click="toggleSize" v-if="!largeSize" title="Original size">zoom_in</span>
+    <span class="btn icon" @click="toggleSize" v-if="largeSize" title="Automatic size">zoom_out</span>
   </template>
 
   <template #default>
-    <div v-for="entry in entries" :key="entry.url" class="entry" :class="{ origSize }">
+    <div v-for="entry in entries" :key="entry.url" class="entry" :class="{ largeSize }">
       <h3> {{ entry.run }}</h3>
       <span class="count">Count: {{ entry.steps.length }}</span>
       <span class="step">Step: {{ entry.steps[entry.steps.length - 1] }}</span><br>
@@ -97,7 +97,7 @@ h3 { margin: 0; word-break: break-all; }
 
 video { max-width: 100%; max-height: 25rem; }
 
-.origSize video { max-width: inherit; max-height: inherit; }
+.largeSize video { max-width: inherit; max-height: inherit; min-height: 20vh; min-width: 20vh; }
 
 .count, .step { display: inline-block; margin: .2rem .5rem .2rem 0; }
 
