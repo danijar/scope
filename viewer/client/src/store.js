@@ -78,6 +78,7 @@ const availableMets = computed(() => {
 })
 
 const availableCards = computed(() => {
+  cachedRuns.value  // TODO
   return [...selMets.value]
     .sort()
     .map(met => {
@@ -164,7 +165,12 @@ updateEids()
 setTimeout(() => {
   watch(() => selExps, () => updateExps(false), { deep: 2 })
   watch(() => selRuns, () => updateRuns(false), { deep: 2 })
-  watch(() => [selRuns, selMets], () => updateCols(false), { deep: 3, immediate: true })
+  watch(() => selRuns, () => updateCols(false), { deep: 2 })
+  watch(() => selMets, () => updateCols(false), { deep: 2 })
+  // TODO: Do this better. This might also not refresh cards when the runs and
+  // metrics stay the same but their values have progressed.
+  watch(() => availableCards, () => updateCols(false), { deep: 3 })
+  updateCols(false)
 }, 200)
 
 /*****************************************************************************
