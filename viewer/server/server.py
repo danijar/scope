@@ -13,7 +13,7 @@ import filesystems
 args = elements.Flags(
     root=os.environ.get('SCOPE_ROOT', ''),
     fs=os.environ.get('SCOPE_FS', 'elements'),
-    port=6008,
+    port=int(os.environ.get('SCOPE_SERVER_PORT', 6008)),
     maxdepth=2,
 ).parse()
 print(args)
