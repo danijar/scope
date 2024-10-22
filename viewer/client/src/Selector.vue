@@ -1,6 +1,6 @@
 <script setup>
 
-import { reactive, computed, watch } from 'vue'
+import { reactive, computed, watch, ref } from 'vue'
 import { saveStorage, loadStorage } from './storage.js'
 import InputText from './InputText.vue'
 
@@ -16,14 +16,9 @@ const emit = defineEmits(['select', 'unselect'])
 
 const model = defineModel({ type: Set, required: true })
 
-const state = reactive({
-  selected: model.value,
-  pattern: loadStorage(props.storageKey, ''),
-})
+const pattern = ref(loadStorage(props.storageKey, ''))
 
-watch(() => state.selected, () => { model.value = state.selected })
-
-watch(() => state.pattern, x => saveStorage(props.storageKey, x, true))
+watch(() => pattern, x => saveStorage(props.storageKey, x, true))
 
 const itemsSorted = computed(() => {
   const sorted = props.items.sort()
@@ -35,16 +30,16 @@ const itemsSet = computed(() => {
 })
 
 const availableEntries = computed(() => {
-  const missing = [...state.selected]
+  const missing = [...model.value]
     .filter(item => !(itemsSet.value.has(item)))
   // RegExp objects are stateful and can only be used once.
-  const pattern = state.pattern || '.*'
+  const regex = pattern.value || '.*'
   const available = itemsSorted.value
-    .filter(item => state.selected.has(item) || (new RegExp(pattern, 'g')).test(item))
+    .filter(item => model.value.has(item) || (new RegExp(regex, 'g')).test(item))
   return [...missing, ...available].map(item => ({
     item: item,
     name: displayName(item),
-    selected: state.selected.has(item),
+    selected: model.value.has(item),
     missing: !itemsSet.value.has(item),
   }))
 })
@@ -57,17 +52,17 @@ function displayName(item) {
 }
 
 function select(item) {
-  state.selected.add(item)
+  model.value.add(item)
   emit('select', item)
 }
 
 function unselect(item) {
-  state.selected.delete(item)
+  model.value.delete(item)
   emit('unselect', item)
 }
 
 function toggle(item) {
-  if (state.selected.has(item))
+  if (model.value.has(item))
     unselect(item)
   else
     select(item)
@@ -86,7 +81,7 @@ function selectAll() {
 }
 
 function unselectAll() {
-  for (const item of state.selected)
+  for (const item of model.value)
     toggle(item)
 }
 
@@ -101,7 +96,7 @@ function unselectAll() {
     </Transition>
   </div>
   <div class="inputs layoutRow">
-    <InputText v-model="state.pattern" class="input nofocusgroup" insetIcon="search"/>
+    <InputText v-model="pattern" class="input nofocusgroup" insetIcon="search"/>
     <button class="btn icon" @click="selectAll" title="Select 10 more">check</button>
     <button class="btn icon" @click="unselectAll" title="Unselect all">close</button>
   </div>
