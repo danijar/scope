@@ -12,11 +12,6 @@ const props = defineProps({
   cols: { type: Array, required: true },
 })
 
-const availableCols = computed(() => {
-  return props.cols
-    .filter(colid => colid in store.availableCols.value)
-})
-
 const datasetsCache = reactiveCache(colid => {
   const col = store.availableCols.value[colid]
   let data = col.steps.map((step, j) => ({ x: step, y: col.values[j]}))
@@ -33,8 +28,18 @@ const datasetsCache = reactiveCache(colid => {
   }
 })
 
-watch(() => availableCols, () => {
-  datasetsCache.setTo(availableCols.value)
+watch(() => [props.cols, store.availableCols], () => {
+  const available = props.cols
+    .filter(colid => colid in store.availableCols.value)
+  datasetsCache.setTo(available)
+  for (const colid of available) {
+    if (colid in datasetsCache.value) {
+      const x1 = datasetsCache.value[colid].col
+      const x2 = store.availableCols.value[colid]
+      if (x1 !== x2)
+        datasetsCache.add(colid, true)  // refresh = true
+    }
+  }
 }, { deep: true, immediate: true })
 
 watch(() => store.options.binsize, () => {
@@ -43,6 +48,7 @@ watch(() => store.options.binsize, () => {
 
 const datasetsList = computed(() => {
   return props.cols
+    .sort()
     .filter(colid => colid in datasetsCache.value)
     .map(colid => datasetsCache.value[colid])
     .map((col, i) => ({ ...col, borderColor: colors[i % colors.length] }))

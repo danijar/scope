@@ -1,4 +1,4 @@
-import { reactive, computed, watch, ref } from 'vue'
+import { reactive, computed, watch, ref, shallowRef } from 'vue'
 import { saveStorage, loadStorage } from './storage.js'
 
 /*****************************************************************************
@@ -78,7 +78,6 @@ const availableMets = computed(() => {
 })
 
 const availableCards = computed(() => {
-  cachedRuns.value  // TODO
   return [...selMets.value]
     .sort()
     .map(met => {
@@ -87,6 +86,7 @@ const availableCards = computed(() => {
         .filter(runid => runid in cachedRuns.value)
         .flatMap(runid => cachedRuns.value[runid]['cols'])
         .filter(colid => met === colToMet(colid))
+        .sort()
       return { name: met, ext: ext, cols: cols }
     })
 })
@@ -114,7 +114,7 @@ async function updateExps(force = false) {
     .filter(expid => !(expid in cachedExps.value) || force)
     .map(expid => { pendingExps.value.add(expid); return expid })
     .map(expid => get(`/api/exp/${expid}`)
-      .then(data => cachedExps.value[data.id] = data)
+      .then(data => cachedExps.value[data.id] = shallowRef(data))
       .finally(() => pendingExps.value.delete(expid)))
 }
 
@@ -124,23 +124,25 @@ async function updateRuns(force = false) {
     .filter(runid => !(runid in cachedRuns.value) || force)
     .map(runid => { pendingRuns.value.add(runid); return runid })
     .map(runid => get(`/api/run/${runid}`)
-      .then(data => cachedRuns.value[data.id] = data)
+      .then(data => cachedRuns.value[data.id] = shallowRef(data))
       .finally(() => pendingRuns.value.delete(runid)))
 }
 
-async function updateCols(force = false) {
-  Object.keys(cachedCols.value)
-    .filter(colid => (
-      !selMets.value.has(colToMet(colid)) ||
-      !selRuns.value.has(colToRun(colid))))
-    .map(colid => delete cachedCols.value[colid])
+async function updateCols(force = false, clearOld = true) {
+  if (clearOld) {
+    Object.keys(cachedCols.value)
+      .filter(colid => (
+        !selMets.value.has(colToMet(colid)) ||
+        !selRuns.value.has(colToRun(colid))))
+      .map(colid => delete cachedCols.value[colid])
+  }
   availableCards.value
     .flatMap(card => card['cols'])
     .filter(colid => !pendingCols.value.has(colid))
     .filter(colid => !(colid in cachedCols.value) || force)
     .map(colid => { pendingCols.value.add(colid); return colid })
     .map(colid => get(`/api/col/${colid}`)
-      .then(data => cachedCols.value[data.id] = data)
+      .then(data => cachedCols.value[data.id] = shallowRef(data))
       .finally(() => pendingCols.value.delete(colid)))
 }
 
@@ -167,9 +169,11 @@ setTimeout(() => {
   watch(() => selRuns, () => updateRuns(false), { deep: 2 })
   watch(() => selRuns, () => updateCols(false), { deep: 2 })
   watch(() => selMets, () => updateCols(false), { deep: 2 })
+
   // TODO: Do this better. This might also not refresh cards when the runs and
   // metrics stay the same but their values have progressed.
   watch(() => availableCards, () => updateCols(false), { deep: 3 })
+
   updateCols(false)
 }, 200)
 
