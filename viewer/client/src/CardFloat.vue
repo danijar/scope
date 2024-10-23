@@ -60,7 +60,8 @@ const loading = computed(() => {
     .length > 0
 })
 
-const mouseXY = ref([Number.MAX_VALUE, -Number.MAX_VALUE])
+const dataPosFallback = { x: Number.MAX_VALUE, y: -Number.MAX_VALUE }
+const dataPos = ref(dataPosFallback)
 
 const root = useTemplateRef('root')
 
@@ -83,7 +84,7 @@ const colors = [
 const legend = computed(() => {
   return datasetsList.value
     .map(dataset => {
-      const index = bisectNearestX(dataset.data, mouseXY.value[0])
+      const index = bisectNearestX(dataset.data, dataPos.value.x)
       if (index === null)
         return null
       const step = dataset.data[index].x
@@ -105,8 +106,8 @@ const legend = computed(() => {
     })
     .filter(entry => entry !== null)
     .sort((a, b) => {
-      const distA = Math.abs(a.value - mouseXY.value[1])
-      const distB = Math.abs(b.value - mouseXY.value[1])
+      const distA = Math.abs(a.value - dataPos.value.y)
+      const distB = Math.abs(b.value - dataPos.value.y)
       return distA - distB
     })
 })
@@ -142,38 +143,12 @@ function createChart(canvas) {
       },
       plugins: {
         tooltip: { enabled: false },
-        crosshair: {
-          line: { color: 'rgba(127,127,127,0.8)' },
-          sync: { enabled: false },
-          zoom: {
-            zoomboxBackgroundColor: 'rgba(127,127,127,0.05)',
-            zoomboxBorderColor: 'rgba(127,127,127,0.8)',
-          },
+        zoom: {
+          enabled: true,
+          onMove: (dataXY) => { dataPos.value = dataXY },
         },
       },
     },
-    plugins: [{
-      beforeEvent(chart, args, pluginOptions) {
-        const event = args.event;
-        if (event.type === 'mousemove') {
-          // TODO: Add delay to compute this less frequently?
-          const canvasPos = getRelativePosition(event, chart)
-          const dataX = chart.scales.x.getValueForPixel(canvasPos.x)
-          const dataY = chart.scales.y.getValueForPixel(canvasPos.y)
-          mouseXY.value = [dataX, dataY]
-        }
-        if (event.type === 'click') {
-          const now = Date.now()
-          if (now - prevClick < 500) {
-            const button = root.value.$el.querySelector('.reset-zoom')
-            button && button.click()
-            prevClick = 0
-          } else {
-            prevClick = now
-          }
-        }
-      },
-    }],
   })
 }
 
@@ -240,7 +215,7 @@ function binning(data, binsize, aggFn, nullLimits = true) {
   <Card :name="props.name" :loading="loading" :scrollX="false" :scrollY="false" ref="root">
     <template #default>
       <div class="content layoutCol">
-        <div ref="chart" class="chart">
+        <div class="chart">
           <canvas></canvas>
         </div>
         <div class="legend">

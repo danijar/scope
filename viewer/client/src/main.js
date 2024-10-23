@@ -1,12 +1,10 @@
 import './assets/main.css'
 
 import { createApp } from 'vue'
-// import { createPinia } from 'pinia'
 import App from './App.vue'
-// import router from './router'
 
 import * as chart from 'chart.js'
-import { CrosshairPlugin } from 'chartjs-plugin-crosshair'
+ import { ZoomPlugin } from './chartZoomPlugin.js'
 
 chart.Chart.register(
   chart.LineController,
@@ -20,15 +18,10 @@ chart.Chart.register(
   chart.Title,
   chart.CategoryScale,
   chart.Tooltip,
-  CrosshairPlugin,
+  ZoomPlugin,
 )
 
-// const pinia = createPinia()
 const app = createApp(App)
-
-// app.use(pinia)
-
-// app.use(router)
 
 // app.config.errorHandler = (err, vm, info) => {
 //   console.error('Error:', err)
