@@ -104,6 +104,7 @@ function toggleControls() {
 h3 { margin: 0; word-break: break-all; }
 
 video { max-width: 100%; max-height: 25rem; }
+video:not([controls]) { background: rgba(0,0,0,.1); }
 
 .large video { max-width: inherit; max-height: inherit; min-height: 20vh; min-width: 20vh; }
 
