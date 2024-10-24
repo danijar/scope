@@ -35,17 +35,19 @@ const entries = computed(() => {
 })
 
 const playing = ref(false)
-const largeSize = ref(false)
+const large = ref(false)
+const controls = ref(true)
 
 const root = useTemplateRef('root')
 
-function togglePlayAll() {
-  const videos = [...root.value.$el.querySelectorAll('video')]
-  if (playing.value)
-    videos.map(x => x.pause())
-  else
-    videos.map(x => x.play())
-  playing.value = !playing.value
+function playAll() {
+  [...root.value.$el.querySelectorAll('video')].map(x => x.play())
+  playing.value = true
+}
+
+function pauseAll() {
+  [...root.value.$el.querySelectorAll('video')].map(x => x.pause())
+  playing.value = false
 }
 
 function stopAll() {
@@ -57,29 +59,35 @@ function stopAll() {
   })
 }
 
-function toggleSize() {
-  largeSize.value = !largeSize.value
+function toggleLarge() {
+  large.value = !large.value
+}
+
+function toggleControls() {
+  controls.value = !controls.value
 }
 
 </script>
 
 <template>
-<Card :name="props.name" :loading="loading" :scrollX="largeSize" :scrollY="true" ref="root">
+<Card :name="props.name" :loading="loading" :scrollX="large" :scrollY="true" ref="root">
 
   <template #buttons>
-    <span class="btn icon" @click="togglePlayAll" v-if="!playing" title="Play all">play_arrow</span>
-    <span class="btn icon" @click="togglePlayAll" v-if="playing" title="Pause all">pause</span>
+    <span class="btn icon" @click="playAll" v-if="!playing" title="Play all">play_arrow</span>
+    <span class="btn icon" @click="pauseAll" v-if="playing" title="Pause all">pause</span>
     <span class="btn icon" @click="stopAll" title="Stop all">stop</span>
-    <span class="btn icon" @click="toggleSize" v-if="!largeSize" title="Original size">zoom_in</span>
-    <span class="btn icon" @click="toggleSize" v-if="largeSize" title="Automatic size">zoom_out</span>
+    <span class="btn icon" @click="toggleControls" :title="controls ? 'Hide controls' : 'Show controls'">
+      {{ controls ? 'videogame_asset_off' : 'videogame_asset' }}</span>
+    <span class="btn icon" @click="toggleLarge" :title="large ? 'Small size' : 'Large size'">
+      {{ large ? 'zoom_out' : 'zoom_in' }}</span>
   </template>
 
   <template #default>
-    <div v-for="entry in entries" :key="entry.url" class="entry" :class="{ largeSize }">
+    <div v-for="entry in entries" :key="entry.url" class="entry" :class="{ large }">
       <h3> {{ entry.run }}</h3>
       <span class="count">Count: {{ entry.steps.length }}</span>
       <span class="step">Step: {{ entry.steps[entry.steps.length - 1] }}</span><br>
-      <video controls loop v-if="entry.steps.length" tabindex="-1">
+      <video :controls="controls" loop v-if="entry.steps.length" tabindex="-1">
         <source :src="entry.url">
       </video>
     </div>
@@ -97,7 +105,7 @@ h3 { margin: 0; word-break: break-all; }
 
 video { max-width: 100%; max-height: 25rem; }
 
-.largeSize video { max-width: inherit; max-height: inherit; min-height: 20vh; min-width: 20vh; }
+.large video { max-width: inherit; max-height: inherit; min-height: 20vh; min-width: 20vh; }
 
 .count, .step { display: inline-block; margin: .2rem .5rem .2rem 0; }
 
