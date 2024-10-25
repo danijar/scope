@@ -6,10 +6,10 @@ Scalable metrics logging and analysis.
 
 - 🚀 **Scalable:** Quickly log and view petabytes of metrics, thousands of keys, and large videos.
 - 🎞️ **Formats:** Log and view scalars, text, images, and videos. Easy to extend with custom formats.
-- 🧑🏻‍🔬 **Productivity:** Metrics viewer with focus on power users and full keyboard support.
+- 🧑🏻‍🔬 **Productivity:** Metrics viewer with focus on power users with full keyboard support.
 - ☁️ **Cloud support:** Directly write to and read from Cloud storage via pathlib interface.
 - 🍃 **Lightweight:** The writer and reader measure only ~400 lines of Python code.
-- 🧱 **Reliability:** Unit tested and used across diverse research projects.
+- 🧱 **Reliable:** Unit tested and used across diverse research projects.
 
 ## Usage
 
@@ -25,10 +25,14 @@ pip install scope
 import scope
 
 writer = scope.Writer(logdir)
-for step in range(3)
-  video = np.zeros((100, 640, 360, 3), np.uint8)
-  writer.add(step, {'foo': 42, 'bar': video, 'baz': 'Hello World'})
-writer.flush()
+
+for step in range(3):
+  writer.add(step, {
+      'foo': 42,
+      'bar': np.zeros((100, 640, 360, 3), np.uint8),
+      'baz': 'Hello World',
+  })
+  writer.flush()
 ```
 
 ### Viewing
