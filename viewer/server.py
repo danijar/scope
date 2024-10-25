@@ -1,26 +1,27 @@
 import concurrent.futures
 import functools
 import os
+import pathlib
 import struct
 
 import elements
 import fastapi
 import fastapi.responses
-import uvicorn
+import fastapi.staticfiles
 
 import filesystems
 
+
 args = elements.Flags(
-    root=os.environ.get('SCOPE_ROOT', ''),
+    basedir=os.environ.get('SCOPE_ROOT', ''),
     fs=os.environ.get('SCOPE_FS', 'elements'),
-    port=int(os.environ.get('SCOPE_SERVER_PORT', 6008)),
     maxdepth=2,
+    debug=False,
 ).parse()
 print(args)
-root = args.root.rstrip('/')
-assert root, root
+assert args.basedir, args.basedir
+basedir = args.basedir.rstrip('/')
 
-app = fastapi.FastAPI(debug=True)
 
 fs = dict(
   elements=filesystems.Elements,
@@ -29,43 +30,41 @@ fs = dict(
 )[args.fs]()
 
 
-# @app.get('/', response_class=fastapi.responses.HTMLResponse)
-# def index():
-#   return '<h1>hello world</h1>'
+app = fastapi.FastAPI(debug=args.debug)
 
 
-@app.get('/exps')
+@app.get('/api/exps')
 def get_exps():
   print('GET /exps', flush=True)
-  folders = fs.list(root)
+  folders = fs.list(basedir)
   expids = [x.rsplit('/', 1)[-1] for x in folders]
   return {'exps': expids}
 
 
-@app.get('/exp/{expid}')
+@app.get('/api/exp/{expid}')
 def get_exp(expid: str):
   print(f'GET /exp/{expid}', flush=True)
-  folders = find_runs(root + '/' + expid)
-  folders = [x.removeprefix(str(root))[1:] for x in folders]
+  folders = find_runs(basedir + '/' + expid)
+  folders = [x.removeprefix(str(basedir))[1:] for x in folders]
   runids = [x.replace('/', ':') for x in folders]
   return {'id': expid, 'runs': runids}
 
 
-@app.get('/run/{runid}')
+@app.get('/api/run/{runid}')
 def get_run(runid: str):
   print(f'GET /run/{runid}', flush=True)
-  folder = root + '/' + runid.replace(':', '/') + '/scope'
+  folder = basedir + '/' + runid.replace(':', '/') + '/scope'
   children = fs.list(folder)
-  children = [x.removeprefix(str(root))[1:] for x in children]
+  children = [x.removeprefix(str(basedir))[1:] for x in children]
   colids = [x.replace('/', ':') for x in children]
   return {'id': runid, 'cols': colids}
 
 
-@app.get('/col/{colid}')
+@app.get('/api/col/{colid}')
 def get_col(colid: str):
   print(f'GET /col/{colid}', flush=True)
   ext = colid.rsplit('.', 1)[-1]
-  path = root + '/' + colid.replace(':', '/')
+  path = basedir + '/' + colid.replace(':', '/')
   runid = colid.rsplit(':', 2)[0]  # Remove metric name and scope folder.
   if ext == 'float':
     buffer = fs.read(path)
@@ -81,11 +80,11 @@ def get_col(colid: str):
     raise NotImplementedError((colid, ext))
 
 
-@app.get('/file/{fileid}')
+@app.get('/api/file/{fileid}')
 def get_file(request: fastapi.Request, fileid: str):
   print(f'GET /file/{fileid}', flush=True)
   ext = fileid.rsplit('.', 1)[-1]
-  path = root + '/' + fileid.replace(':', '/')
+  path = basedir + '/' + fileid.replace(':', '/')
   if ext == 'txt':
     text = fs.read(path).decode('utf-8')
     return {'id': fileid, 'text': text}
@@ -96,6 +95,10 @@ def get_file(request: fastapi.Request, fileid: str):
     return RangeResponse(request, openfn, filesize, content_type)
   else:
     raise NotImplementedError((fileid, ext))
+
+
+dist = pathlib.Path(__file__).parent / 'dist'
+app.mount('/', fastapi.staticfiles.StaticFiles(directory=dist, html=True))
 
 
 def find_runs(folder, maxdepth=args.maxdepth, workers=64):
@@ -173,10 +176,3 @@ def RangeResponse(request, openfn, filesize, content_type):
         yield chunk
   return fastapi.responses.StreamingResponse(
     iterfile(), headers=headers, status_code=status_code)
-
-
-if __name__ == '__main__':
-  # uvicorn.run('__main__:app', host='0.0.0.0', port=args.port, reload=True)
-  uvicorn.run(
-      '__main__:app', host='0.0.0.0', port=args.port,
-      reload=False, workers=32)

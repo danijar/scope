@@ -33,7 +33,7 @@ class Writer:
     formats = formats or FORMATS
     if isinstance(logdir, str):
       logdir = pathlib.Path(logdir)
-    self.logdir = logdir
+    self.logdir = logdir / 'scope'
     self.logdir.mkdir(parents=True, exist_ok=True)
     self.workers = workers
     self.rng = np.random.default_rng(seed=None)

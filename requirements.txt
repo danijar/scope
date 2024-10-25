@@ -1,3 +1,6 @@
 av
+elements>=3.15.11
+fastapi
 numpy
 pillow
+uvicorn[standard]

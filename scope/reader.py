@@ -18,7 +18,7 @@ class Reader:
     formats = formats or FORMATS
     if isinstance(logdir, str):
       logdir = pathlib.Path(logdir)
-    self.logdir = logdir
+    self.logdir = logdir / 'scope'
     self.fmts = {x.extension: x for x in formats}
     self.cols = {}
     for child in sorted(logdir.glob('*')):

@@ -88,7 +88,7 @@ function unselectAll() {
 </script>
 
 <template>
-<div class="selector layoutCol focusgroup">
+<div class="layoutCol focusgroup">
   <div class="header layoutRow">
     <h2 v-if="props.title.length">{{ props.title }}</h2>
     <Transition>
@@ -117,7 +117,6 @@ function unselectAll() {
 </template>
 
 <style scoped>
-.selector { display: flex; flex-diregtion: column; }
 
 .header { flex: 0 0 content; padding-right: 1rem; }
 h2 { flex: 1 0 content; margin: 0 .1rem .5rem; }

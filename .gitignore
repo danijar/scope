@@ -1,6 +1,7 @@
 *.egg-info
 *.py[cod]
 .pytest_cache
+MANIFEST
 MUJOCO_LOG.TXT
 [';:]
 \[
