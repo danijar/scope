@@ -12,9 +12,10 @@ class TestFloat:
     writer.add(0, {'foo': 12})
     writer.add(5, {'foo': 42, 'bar': np.float64(np.pi)})
     writer.flush()
-    assert {x.name for x in logdir.glob('*')} == {'foo.float', 'bar.float'}
-    assert (logdir / 'foo.float').stat().st_size == (8 + 8) * 2
-    assert (logdir / 'bar.float').stat().st_size == (8 + 8) * 1
+    filenames = (logdir / 'scope').glob('*')
+    assert {x.name for x in filenames} == {'foo.float', 'bar.float'}
+    assert (logdir / 'scope/foo.float').stat().st_size == (8 + 8) * 2
+    assert (logdir / 'scope/bar.float').stat().st_size == (8 + 8) * 1
     reader = scope.Reader(logdir)
     assert reader.keys() == tuple(sorted(['foo', 'bar']))
     assert reader.length('foo') == 2
@@ -29,9 +30,10 @@ class TestFloat:
       writer.add(step, {'foo': step, 'bar': step})
     writer.flush()
     writer.flush()  # Block until previous flush is done.
-    assert {x.name for x in logdir.glob('*')} == {'foo.float', 'bar.float'}
-    assert (logdir / 'foo.float').stat().st_size == (8 + 8) * 10
-    assert (logdir / 'bar.float').stat().st_size == (8 + 8) * 10
+    filenames = (logdir / 'scope').glob('*')
+    assert {x.name for x in filenames} == {'foo.float', 'bar.float'}
+    assert (logdir / 'scope/foo.float').stat().st_size == (8 + 8) * 10
+    assert (logdir / 'scope/bar.float').stat().st_size == (8 + 8) * 10
     reader = scope.Reader(logdir)
     assert equal(reader['foo'], (np.arange(10), np.arange(10)))
     assert equal(reader['bar'], (np.arange(10), np.arange(10)))
@@ -41,26 +43,12 @@ class TestFloat:
     writer = scope.Writer(logdir, workers=0)
     writer.add(0, {'foo/bar': 12})
     writer.flush()
-    assert {x.name for x in logdir.glob('*')} == {'foo-bar.float'}
+    filenames = (logdir / 'scope').glob('*')
+    assert {x.name for x in filenames} == {'foo-bar.float'}
     reader = scope.Reader(logdir)
     assert reader.keys() == ('foo/bar',)
     assert reader.length('foo/bar') == 1
     assert equal(reader['foo/bar'], ([0], [12]), (np.int64, np.float64))
-
-  # def test_slicing(self, tmpdir):
-  #   logdir = pathlib.Path(tmpdir)
-  #   writer = scope.Writer(logdir, workers=0)
-  #   writer.add(0, {'foo': 12})
-  #   writer.add(5, {'foo': 42})
-  #   writer.flush()
-  #   reader = scope.Reader(logdir)
-  #   assert equal(reader['foo', 0], ([0], [12]))
-  #   assert equal(reader['foo', :2], ([0], [12]))
-  #   assert equal(reader['foo', :5], ([0], [12]))
-  #   assert equal(reader['foo', :6], ([0, 5], [12, 42]))
-  #   assert equal(reader['foo', 1:6], ([5], [42]))
-  #   assert equal(reader['foo', :-1], ([], []))
-  #   assert equal(reader['foo', 7:], ([], []))
 
 
 def equal(actuals, references, dtypes=None):

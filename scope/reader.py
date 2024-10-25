@@ -21,7 +21,7 @@ class Reader:
     self.logdir = logdir / 'scope'
     self.fmts = {x.extension: x for x in formats}
     self.cols = {}
-    for child in sorted(logdir.glob('*')):
+    for child in sorted(self.logdir.glob('*')):
       basename, ext = child.name.rsplit('.', 1)
       key = basename.replace('-', '/')
       assert re.match(r'[a-z0-9_]+(/[a-z0-9_]+)?', key), key

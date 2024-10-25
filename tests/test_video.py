@@ -14,12 +14,12 @@ class TestVideo:
     writer.add(0, {'foo': vid1})
     writer.add(5, {'foo': vid2})
     writer.flush()
-    names = {x.name for x in logdir.glob('*')}
+    names = {x.name for x in (logdir / 'scope').glob('*')}
     assert len(names) == 1
     name = list(names)[0]
     assert name in ('foo.mp4', 'foo.webm')
-    assert (logdir / name / 'index').stat().st_size == (8 + 8) * 2
-    assert len(list((logdir / name).glob('*'))) == 1 + 2
+    assert (logdir / 'scope' / name / 'index').stat().st_size == (8 + 8) * 2
+    assert len(list((logdir / 'scope' / name).glob('*'))) == 1 + 2
     reader = scope.Reader(logdir)
     assert reader.keys() == ('foo',)
     assert reader.length('foo') == 2
