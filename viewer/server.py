@@ -1,36 +1,24 @@
 import concurrent.futures
 import functools
-import os
 import pathlib
 import struct
 
-import elements
 import fastapi
 import fastapi.responses
 import fastapi.staticfiles
 
 import filesystems
+import config
 
 
-args = elements.Flags(
-    basedir=os.environ.get('SCOPE_ROOT', ''),
-    fs=os.environ.get('SCOPE_FS', 'elements'),
-    maxdepth=2,
-    debug=False,
-).parse()
-print(args)
-assert args.basedir, args.basedir
-basedir = args.basedir.rstrip('/')
-
-
+config = config.config
+app = fastapi.FastAPI(debug=config.debug)
+basedir = config.basedir.rstrip('/')
 fs = dict(
   elements=filesystems.Elements,
   fileutil=filesystems.Fileutil,
   local=filesystems.Local,
-)[args.fs]()
-
-
-app = fastapi.FastAPI(debug=args.debug)
+)[config.filesystem]()
 
 
 @app.get('/api/exps')
@@ -101,7 +89,7 @@ dist = pathlib.Path(__file__).parent / 'dist'
 app.mount('/', fastapi.staticfiles.StaticFiles(directory=dist, html=True))
 
 
-def find_runs(folder, maxdepth=args.maxdepth, workers=64):
+def find_runs(folder, maxdepth=config.maxdepth, workers=64):
   if not workers:
     runs = []
     queue = [(folder, 0)]
