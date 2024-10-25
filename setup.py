@@ -53,7 +53,7 @@ setuptools.setup(
       'scope.viewer': 'viewer',
     },
     package_data={
-        'scope.viewer': ['dist/*'],
+        'scope.viewer': ['dist/**/*'],
     },
     include_package_data=True,
     cmdclass={
