@@ -37,25 +37,30 @@ const entries = computed(() => {
 const playing = ref(false)
 const large = ref(false)
 const controls = ref(true)
+const seeking = ref(new Set())
 
 const root = useTemplateRef('root')
 
+function getVideos() {
+  return [...root.value.$el.querySelectorAll('video')]
+}
+
 function playAll() {
-  [...root.value.$el.querySelectorAll('video')].map(x => x.play())
+  getVideos().map(video => video.play())
   playing.value = true
 }
 
 function pauseAll() {
-  [...root.value.$el.querySelectorAll('video')].map(x => x.pause())
+  getVideos().map(video => video.pause())
   playing.value = false
 }
 
 function stopAll() {
   playing.value = false
-  const elements = [...root.value.$el.querySelectorAll('video')]
-  elements.map(x => {
-    x.pause()
-    x.currentTime = 0
+  getVideos().map(video => {
+    video.pause()
+    seeking.value.add(video.getAttribute('url'))
+    video.currentTime = 0
   })
 }
 
@@ -65,6 +70,35 @@ function toggleLarge() {
 
 function toggleControls() {
   controls.value = !controls.value
+}
+
+let lastSeek = 0
+function seekStart(e) {
+  // After the user seeks a video, we automatically seek the other videos as
+  // well. We ignore those additional seeking events with a time window.
+  console.log(e.target.firstChild.src)
+  const now = Date.now()
+  if (now - lastSeek < 200)
+    return
+  lastSeek = now
+  if (!e.target.duration)
+    return
+  seeking.value.add(e.target.getAttribute('url'))
+  const time = e.target.currentTime
+  setTimeout(() => {
+    getVideos()
+      .filter(video => video !== e.target)
+      .filter(video => video.paused)
+      .filter(video => video.duration)
+      .forEach(video => {
+        seeking.value.add(video.getAttribute('url'))
+        video.currentTime = Math.min(time, video.duration)
+      })
+  }, 10)
+}
+
+function seekDone(e) {
+  seeking.value.delete(e.target.getAttribute('url'))
 }
 
 </script>
@@ -87,9 +121,16 @@ function toggleControls() {
       <h3> {{ entry.run }}</h3>
       <span class="count">Count: {{ entry.steps.length }}</span>
       <span class="step">Step: {{ entry.steps[entry.steps.length - 1] }}</span><br>
-      <video :controls="controls" loop v-if="entry.steps.length" tabindex="-1">
-        <source :src="entry.url">
-      </video>
+      <div class="player">
+        <video
+          :controls="controls" loop tabindex="-1" :url="entry.url"
+          v-if="entry.steps.length" @seeking="seekStart" @seeked="seekDone">
+          <source :src="entry.url">
+        </video>
+        <Transition>
+          <span v-if="seeking.has(entry.url)" class="icon spinner">progress_activity</span>
+        </Transition>
+      </div>
     </div>
   </template>
 
@@ -104,9 +145,10 @@ function toggleControls() {
 h3 { margin: 0; word-break: break-all; }
 
 video { max-width: 100%; max-height: 25rem; }
-video:not([controls]) { background: rgba(0,0,0,.1); }
-
 .large video { max-width: inherit; max-height: inherit; min-height: 20vh; min-width: 20vh; }
+
+.player { position: relative; display: inline-flex; background: rgba(0,0,0,.1); }
+.spinner { display: block; position: absolute; top: 50%; left: 50%; margin: -.5em; font-size: 3rem; }
 
 .count, .step { display: inline-block; margin: .2rem .5rem .2rem 0; }
 

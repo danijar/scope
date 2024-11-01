@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "frontend": "vite",
-    "backend": "python server.py --debug=True",
+    "backend": "cd .. && python -m viewer --debug=True",
     "dev": "concurrently 'npm run frontend' 'npm run backend'",
     "build": "vite build",
     "preview": "vite preview"

@@ -1,4 +1,3 @@
-import collections
 import io
 import os
 import pathlib

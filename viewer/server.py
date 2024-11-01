@@ -2,10 +2,13 @@ import concurrent.futures
 import functools
 import pathlib
 import struct
+import sys
 
 import fastapi
 import fastapi.responses
 import fastapi.staticfiles
+
+sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
 import filesystems
 import config

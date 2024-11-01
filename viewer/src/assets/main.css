@@ -151,7 +151,7 @@ input:focus, button:focus, :focus-visible { outline: none; }
 
 .spinner {
   color: var(--fg3);
-  height: 24px; width: 24px;
+  height: 1em; width: 1em;
   animation: spinner 1.5s infinite linear running;
 }
 @keyframes spinner {
