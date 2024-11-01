@@ -20,6 +20,10 @@ fs = dict(
   local=filesystems.Local,
 )[config.filesystem]()
 
+is_local = isinstance(fs, filesystems.Local)
+if config.cachedir and config.cachesize and not is_local:
+  fs = filesystems.WithFileCache(fs, config.cachedir, config.cachesize)
+
 
 @app.get('/api/exps')
 def get_exps():

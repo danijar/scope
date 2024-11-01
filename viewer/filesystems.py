@@ -1,7 +1,10 @@
-import elements
+import collections
 import io
 import os
+import pathlib
 import subprocess
+
+import elements
 
 
 class Local:
@@ -87,3 +90,58 @@ class Fileutil:
         return subprocess.check_output(cmd.split(), shell=False)
       except subprocess.CalledProcessError as e:
         raise RuntimeError(f'Error in subprocess: {e}')
+
+
+class WithFileCache:
+
+  def __init__(self, fs, cachedir, maxsize):
+    # Cache size can be exceeded if multiple workers download in parallel.
+    assert not isinstance(fs, Local)
+    if isinstance(cachedir, str):
+      cachedir = pathlib.Path(cachedir)
+    cachedir.mkdir(exist_ok=True, parents=True)
+    self.fs = fs
+    self.localfs = Local()
+    self.cachedir = cachedir
+    self.maxsize = maxsize
+
+  def list(self, path):
+    return self.fs.list(path)
+
+  def size(self, path):
+    localpath = self._getfile(path)
+    return self.localfs.size(localpath)
+
+  def read(self, path):
+    localpath = self._getfile(path)
+    return self.localfs.read(localpath)
+
+  def open(self, path, seek=0, limit=None):
+    localpath = self._getfile(path)
+    return self.localfs.open(localpath, seek, limit)
+
+  def _getfile(self, path):
+    name = str(path).replace(':', '').replace('//', '/').replace('/', ':')
+    localpath = self.cachedir / name
+    if not localpath.exists():
+      buffer = self.fs.read(path)
+      self._freeup(len(buffer), path)
+      localpath.write_bytes(buffer)
+    return localpath
+
+  def _freeup(self, needed, path):
+    # Catch errors because parallel workers share the cache.
+    pairs = []
+    for path in self.cachedir.glob('*'):
+      try:
+        stat = path.stat()
+        pairs.append((path, stat))
+      except FileNotFoundError:
+        pass
+    pairs = sorted(pairs, key=lambda x: x[1].st_ctime)
+    while sum([s.st_size for p, s in pairs]) + needed > self.maxsize:
+      path, _ = pairs.pop(0)
+      try:
+        path.unlink()
+      except IndexError:
+        pass
