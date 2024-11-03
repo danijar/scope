@@ -25,7 +25,9 @@ fs = dict(
 
 is_local = isinstance(fs, filesystems.Local)
 if config.cachedir and config.cachesize and not is_local:
-  fs = filesystems.WithFileCache(fs, config.cachedir, config.cachesize)
+  cachedfs = filesystems.WithFileCache(fs, config.cachedir, config.cachesize)
+else:
+  cachedfs = fs
 
 
 @app.get('/api/exps')
@@ -81,11 +83,11 @@ def get_file(request: fastapi.Request, fileid: str):
   ext = fileid.rsplit('.', 1)[-1]
   path = basedir + '/' + fileid.replace(':', '/')
   if ext == 'txt':
-    text = fs.read(path).decode('utf-8')
+    text = cachedfs.read(path).decode('utf-8')
     return {'id': fileid, 'text': text}
   elif ext in ('mp4', 'webm'):
-    filesize = fs.size(path)
-    openfn = functools.partial(fs.open, path)
+    filesize = cachedfs.size(path)
+    openfn = functools.partial(cachedfs.open, path)
     content_type = f'video/{ext}'
     return RangeResponse(request, openfn, filesize, content_type)
   else:
