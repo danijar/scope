@@ -3,8 +3,8 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-const clientPort = process.env.SCOPE_CLIENT_PORT || 8000
-const serverPort = process.env.SCOPE_SERVER_PORT || 6000
+const serverPort = process.env.SCOPE_PORT || 6000
+const clientPort = process.env.SCOPE_PORT_DEV || 8000
 
 export default defineConfig({
   plugins: [

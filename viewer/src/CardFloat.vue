@@ -84,7 +84,7 @@ const colors = [
 const legend = computed(() => {
   return datasetsList.value
     .map(dataset => {
-      const index = bisectNearestX(dataset.data, dataPos.value.x)
+      const index = findNearest(dataset.data, dataPos.value.x)
       if (index === null)
         return null
       const step = dataset.data[index].x
@@ -152,41 +152,28 @@ function createChart(canvas) {
   })
 }
 
-function bisectNearestX(data, target, trimNull = true) {
-  // This function is more complex that one would expect, because the ChartJS
-  // crosshair plugin modifies the data lists in-place. We don't know exactly
-  // what they do, but can be null values that we handle below.
-  let lo = 0
-  let hi = data.length - 1
-  if (trimNull) {
-    while (lo < data.length - 1 && lo < hi && data[lo].y === null) lo++
-    while (hi > 0 && hi > lo && data[hi].y === null) hi--
+function findNearest(data, target) {
+  // Because the time steps may not be sorted due to checkpoint restore and
+  // this should be reflected in the graphs, we cannot use binary search.
+  // However, drawing the chart needs to iterate over all data points anyways,
+  // so this is likely cheap in comparison.
+  let bestIndex = 0
+  let bestDist = Infinity
+  for (const [index, point] of data.entries()) {
+    if (point.y === null)
+      continue
+    const dist = Math.abs(point.x - target)
+    if (dist < bestDist) {
+      bestIndex = index
+      bestDist = dist
+    }
   }
-  if (!(lo < hi))
-    return null
-  while (lo <= hi) {
-    const mid = Math.floor((lo + hi) / 2)
-    const val = data[mid].x
-    if (target > val)
-      lo = mid + 1
-    else if (target < val)
-      hi = mid - 1
-    else
-      return mid
-  }
-  lo = Math.max(0, Math.min(lo, data.length - 1))
-  hi = Math.max(0, Math.min(hi, data.length - 1))
-  let index = (data[lo] - target) < (target - data[hi]) ? lo : hi
-  while (index < data.length && data[index].y === null) index++
-  return index < data.length ? index : null
+  return (bestDist === Infinity) ? null : bestIndex
 }
 
-function binning(data, binsize, aggFn, nullLimits = true) {
+function binning(data, binsize, aggFn) {
   const result = []
-
-  if (nullLimits)
-    result.push({ x: data[0].x, y: null })
-
+  result.push({ x: data[0].x, y: null })
   let prev = null
   let curr = null
   let vals = []
@@ -202,11 +189,14 @@ function binning(data, binsize, aggFn, nullLimits = true) {
   }
   if (vals.length)
     result.push({ x: prev, y: aggFn(vals) })
-
-  if (nullLimits)
-    result.push({ x: data[data.length - 1].x, y: null })
-
+  result.push({ x: data[data.length - 1].x, y: null })
   return result
+}
+
+function wheel(e) {
+  const legend = root.value.$el.querySelector('.legend')
+  legend.scrollBy({ left: e.deltaX, top: e.deltaY, behavior: 'smooth' })
+  e.preventDefault()
 }
 
 </script>
@@ -215,11 +205,11 @@ function binning(data, binsize, aggFn, nullLimits = true) {
   <Card :name="props.name" :loading="loading" :scrollX="false" :scrollY="false" ref="root">
     <template #default>
       <div class="content layoutCol">
-        <div class="chart">
+        <div class="chart" @wheel="wheel">
           <canvas></canvas>
         </div>
         <div class="legend">
-          <div class="entry" v-for="entry in legend">
+          <div class="entry" v-for="entry in legend" :key="entry.run">
             <div :style="{ background: entry.color }"></div>
             <div>{{ entry.run }}</div>
             <div>{{ entry.formattedStep }}</div>
