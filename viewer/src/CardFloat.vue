@@ -163,7 +163,7 @@ function findNearest(data, target) {
     if (point.y === null)
       continue
     const dist = Math.abs(point.x - target)
-    if (dist < bestDist) {
+    if (dist <= bestDist) {
       bestIndex = index
       bestDist = dist
     }

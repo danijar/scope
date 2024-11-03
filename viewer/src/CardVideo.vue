@@ -24,15 +24,34 @@ const loading = computed(() => {
 
 const entries = computed(() => {
   return cols.value.map(col => {
-    const lastValue = col.values[col.values.length - 1]
+    const index = nearestIndex(col.steps, store.options.stepsel)
+    const lastValue = col.values[index]
     return {
       run: col.run,
       url: `/api/file/${lastValue}`,
       steps: col.steps,
       values: col.values,
+      selectedIndex: index,
+      selectedStep: col.steps[index],
+      maxStep: Math.max(...col.steps),
     }
   })
 })
+
+function nearestIndex(steps, target) {
+  if (target === null)
+    return steps.length - 1
+  let bestIndex = 0
+  let bestDist = Infinity
+  for (const [index, step] of steps.entries()) {
+    const dist = Math.abs(step - target)
+    if (dist <= bestDist) {
+      bestIndex = index
+      bestDist = dist
+    }
+  }
+  return (bestDist === Infinity) ? null : bestIndex
+}
 
 const playing = ref(false)
 const large = ref(false)
@@ -125,8 +144,8 @@ function seekDone(e) {
   <template #default>
     <div v-for="entry in entries" :key="entry.url" class="entry" :class="{ large }">
       <h3> {{ entry.run }}</h3>
-      <span class="count">Count: {{ entry.steps.length }}</span>
-      <span class="step">Step: {{ entry.steps[entry.steps.length - 1] }}</span><br>
+      <span class="count">Index: {{ entry.selectedIndex }}/{{ entry.steps.length }}</span>
+      <span class="step">Step: {{ entry.selectedStep }}/{{ entry.maxStep }}</span><br>
       <div class="player">
         <video
           :controls="controls" loop tabindex="-1" :url="entry.url"

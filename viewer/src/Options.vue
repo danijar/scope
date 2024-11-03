@@ -16,7 +16,7 @@ const state = reactive({
 })
 
 watch(() => state.binsize, x => store.options.binsize = x ? parseFloat(x) : null)
-watch(() => state.stepsel, x => store.options.stepsel = x ? parseInt(x) : null)
+watch(() => state.stepsel, x => store.options.stepsel = x ? parseInt(parseFloat(x)) : null)
 
 </script>
 
