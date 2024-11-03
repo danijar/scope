@@ -73,16 +73,22 @@ function toggleControls() {
 }
 
 let lastSeek = 0
+let lastSync = 0
 function seekStart(e) {
-  // After the user seeks a video, we automatically seek the other videos as
-  // well. We ignore those additional seeking events with a time window.
-  console.log(e.target.firstChild.src)
   const now = Date.now()
-  if (now - lastSeek < 200)
+  // Skip if this is not a double click.
+  if (!lastSeek || now - lastSeek > 200) {
+    lastSeek = now
     return
-  lastSeek = now
+  }
+  // Ignore seek events on videos without loaded metadata.
   if (!e.target.duration)
     return
+  // Ignore seek events of videos we triggered by syncing.
+  if (lastSync && now - lastSync < 200)
+    return
+  lastSeek = now
+  lastSync = now
   seeking.value.add(e.target.getAttribute('url'))
   const time = e.target.currentTime
   setTimeout(() => {

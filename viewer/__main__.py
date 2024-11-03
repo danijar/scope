@@ -11,6 +11,8 @@ from config import config
 
 def main():
 
+  print(config)
+
   # Uvicorn watches cwd for changes for reload.
   os.chdir(package)
 
