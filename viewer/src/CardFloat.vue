@@ -193,9 +193,22 @@ function binning(data, binsize, aggFn) {
   return result
 }
 
+let lastScroll = null
+
 function wheel(e) {
-  const legend = root.value.$el.querySelector('.legend')
-  legend.scrollBy({ left: e.deltaX, top: e.deltaY, behavior: 'smooth' })
+  if (!legend.value.length)
+    return
+  const el = root.value.$el.querySelector('.legend')
+  let targetX = el.scrollLeft + e.deltaX
+  let targetY = el.scrollTop + e.deltaY
+  targetX = Math.max(0, Math.min(targetX, el.scrollWidth - el.offsetWidth))
+  targetY = Math.max(0, Math.min(targetY, el.scrollHeight - el.offsetHeight))
+  const now = Date.now()
+  if (lastScroll !== null && now - lastScroll > 200)
+    if (targetX == el.scrollLeft && targetY == el.scrollTop)
+      return
+  lastScroll = now
+  el.scrollTo({ left: targetX, top: targetY, behavior: 'instant' })
   e.preventDefault()
 }
 
