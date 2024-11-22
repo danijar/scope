@@ -31,8 +31,8 @@ function toggleZoom() {
       <span v-if="props.loading" class="icon spinner">progress_activity</span>
     </Transition>
     <div class="buttons layoutRow">
-      <slot name="buttons"></slot>
       <span class="btn icon" @click="toggleZoom" title="Fullscreen">fullscreen</span>
+      <slot name="buttons"></slot>
     </div>
   </div>
   <div class="content" :class="{ scrollX, scrollY }">
@@ -53,7 +53,8 @@ function toggleZoom() {
 .scrollY { overflow-y: auto; margin-right: 0; padding-right: 1rem; }
 
 h2 { flex: 1 1 content; margin: 0; word-break: break-word; }
-.buttons { flex: 0 0 content; margin: -.4rem; margin-left: 0; max-width: 50%; flex-wrap: wrap; justify-content: end; }
+.buttons { flex: 0 0 content; margin: -.4rem; margin-left: 0; max-width: 50%; display: block; direction: rtl; text-align: right; }
+.buttons > span { }
 .buttons .spinner { margin: .4rem; }
 
 .zoom.card { position: absolute; height: inherit; max-height: inherit; aspect-ratio: auto; top: 2rem; right: 2rem; bottom: 2rem; left: 2rem; z-index: 1; }

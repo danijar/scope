@@ -132,13 +132,13 @@ function seekDone(e) {
 <Card :name="props.name" :loading="loading" :scrollX="large" :scrollY="true" ref="root">
 
   <template #buttons>
-    <span class="btn icon" @click="playAll" v-if="!playing" title="Play all">play_arrow</span>
-    <span class="btn icon" @click="pauseAll" v-if="playing" title="Pause all">pause</span>
-    <span class="btn icon" @click="stopAll" title="Stop all">stop</span>
-    <span class="btn icon" @click="toggleControls" :title="controls ? 'Hide controls' : 'Show controls'">
-      {{ controls ? 'videogame_asset_off' : 'videogame_asset' }}</span>
     <span class="btn icon" @click="toggleLarge" :title="large ? 'Small size' : 'Large size'">
       {{ large ? 'zoom_out' : 'zoom_in' }}</span>
+    <span class="btn icon" @click="toggleControls" :title="controls ? 'Hide controls' : 'Show controls'">
+      {{ controls ? 'videogame_asset_off' : 'videogame_asset' }}</span>
+    <span class="btn icon" @click="stopAll" title="Stop all">stop</span>
+    <span class="btn icon" @click="pauseAll" v-if="playing" title="Pause all">pause</span>
+    <span class="btn icon" @click="playAll" v-if="!playing" title="Play all">play_arrow</span>
   </template>
 
   <template #default>

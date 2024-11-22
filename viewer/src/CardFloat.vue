@@ -204,7 +204,7 @@ function wheel(e) {
   targetX = Math.max(0, Math.min(targetX, el.scrollWidth - el.offsetWidth))
   targetY = Math.max(0, Math.min(targetY, el.scrollHeight - el.offsetHeight))
   const now = Date.now()
-  if (lastScroll !== null && now - lastScroll > 200)
+  if (lastScroll !== null && now - lastScroll > 100)
     if (targetX == el.scrollLeft && targetY == el.scrollTop)
       return
   lastScroll = now
