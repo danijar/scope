@@ -33,7 +33,8 @@ const availableEntries = computed(() => {
   const missing = [...model.value]
     .filter(item => !(itemsSet.value.has(item)))
   // RegExp objects are stateful and can only be used once.
-  const regex = pattern.value || '.*'
+  let regex = pattern.value || '.*'
+  try { new RegExp(regex, 'g') } catch (e) { regex = '$^' }
   const available = itemsSorted.value
     .filter(item => model.value.has(item) || (new RegExp(regex, 'g')).test(item))
   return [...missing, ...available].map(item => ({
