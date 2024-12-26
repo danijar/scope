@@ -1,4 +1,4 @@
-__version__ = '0.4.12'
+__version__ = '0.5.0'
 
 from .reader import Reader
 from .writer import Writer

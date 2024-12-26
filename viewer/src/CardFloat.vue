@@ -12,12 +12,17 @@ const props = defineProps({
   cols: { type: Array, required: true },
 })
 
+const aggFn = (vals) => {
+  if (vals.some(x => x === null))
+    return null
+  return vals.reduce((a, b) => a + b) / vals.length
+}
+
 const datasetsCache = reactiveCache(colid => {
   const col = store.availableCols.value[colid]
   let data = col.steps.map((step, j) => ({ x: step, y: col.values[j]}))
-  const mean = (vals) => vals.reduce((a, b) => a + b) / vals.length
   if (store.options.binsize)
-    data = binning(data, store.options.binsize, mean)
+    data = binning(data, store.options.binsize, aggFn)
   return {
     label: col.run,
     data: data,
@@ -85,13 +90,13 @@ const legend = computed(() => {
   return datasetsList.value
     .map(dataset => {
       const index = findNearest(dataset.data, dataPos.value.x)
-      if (index === null)
-        return null
       const step = dataset.data[index].x
       const value = dataset.data[index].y
       const formattedStep = step.toLocaleString('en-US')
       let formattedValue
-      if (0.01 <= Math.abs(value) && Math.abs(value) <= 10000)
+      if (value === null)
+        formattedValue = 'NaN'
+      else if (0.01 <= Math.abs(value) && Math.abs(value) <= 10000)
         formattedValue = value.toFixed(3)
       else
         formattedValue = value.toExponential(2)
@@ -123,7 +128,26 @@ watch(() => datasetsList, () => updateChart(), { deep: 2 })
 function updateChart() {
   if (chart[0] === null)
     return
-  chart[0].data.datasets = datasetsList.value.slice()
+  const datasets = datasetsList.value.slice()
+
+  for (const dataset of datasets) {
+    let missing = []
+    for (const point of dataset.data)
+      if (point.y === null)
+        missing.push({x: point.x, y: 0})
+    if (missing.length)
+      datasets.push({
+        data: missing,
+        borderWidth: 0,
+        backgroundColor: dataset.borderColor,
+        showLine: false,
+        pointStyle: 'triangle',
+        pointRadius: 10,
+        pointHoverRadius: 10,
+      })
+  }
+
+  chart[0].data.datasets = datasets
   chart[0].update()
 }
 
@@ -157,6 +181,8 @@ function findNearest(data, target) {
   // this should be reflected in the graphs, we cannot use binary search.
   // However, drawing the chart needs to iterate over all data points anyways,
   // so this is likely cheap in comparison.
+  if (!data.length)
+    return null
   let bestIndex = 0
   let bestDist = Infinity
   for (const [index, point] of data.entries()) {
@@ -168,12 +194,13 @@ function findNearest(data, target) {
       bestDist = dist
     }
   }
-  return (bestDist === Infinity) ? null : bestIndex
+  return bestIndex
+  // return (bestDist === Infinity) ? null : bestIndex
 }
 
 function binning(data, binsize, aggFn) {
   const result = []
-  result.push({ x: data[0].x, y: null })
+  // result.push({ x: data[0].x, y: null })
   let prev = null
   let curr = null
   let vals = []
@@ -187,9 +214,9 @@ function binning(data, binsize, aggFn) {
     }
     vals.push(point.y)
   }
-  if (vals.length)
+  if (vals.length && curr !== null)
     result.push({ x: prev, y: aggFn(vals) })
-  result.push({ x: data[data.length - 1].x, y: null })
+  // result.push({ x: data[data.length - 1].x, y: null })
   return result
 }
 

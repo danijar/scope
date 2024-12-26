@@ -15,7 +15,11 @@ import config
 
 
 config = config.config
-app = fastapi.FastAPI(debug=config.debug)
+app = fastapi.FastAPI(
+    debug=config.debug,
+    # Support extended JSON (NaN, Inf, -Inf).
+    default_response_class=fastapi.responses.ORJSONResponse,
+)
 basedir = config.basedir.rstrip('/')
 fs = dict(
   elements=filesystems.Elements,
