@@ -69,10 +69,7 @@ const dataPosFallback = { x: Number.MAX_VALUE, y: -Number.MAX_VALUE }
 const dataPos = ref(dataPosFallback)
 
 const root = useTemplateRef('root')
-
 const chart = [null]
-
-let prevClick = 0
 
 const colors = [
   '#e41a1c',
@@ -128,6 +125,7 @@ watch(() => datasetsList, () => updateChart(), { deep: 2 })
 function updateChart() {
   if (chart[0] === null)
     return
+
   const datasets = datasetsList.value.slice()
 
   for (const dataset of datasets) {
@@ -148,11 +146,12 @@ function updateChart() {
   }
 
   chart[0].data.datasets = datasets
-  chart[0].update()
+  // chart[0].update()
+  setTimeout(chart.updateDebounced, 0)
 }
 
 function createChart(canvas) {
-  return new Chart(canvas, {
+  const chart = new Chart(canvas, {
     type: 'line',
     data: { datasets: [] },
     options: {
@@ -161,6 +160,7 @@ function createChart(canvas) {
       maintainAspectRatio: false,
       resizeDelay: 10,
       pointHoverRadius: 0,
+      parsing: false,
       scales: {
         x: { type: 'linear', position: 'bottom', maxRotation: 0 },
         y: { type: 'linear', position: 'left', maxRotation: 0, },
@@ -174,6 +174,9 @@ function createChart(canvas) {
       },
     },
   })
+  chart.updateDebounced = debounce(
+    () => chart.update('none'), 200, true)
+  return chart
 }
 
 function findNearest(data, target) {
@@ -237,6 +240,22 @@ function wheel(e) {
   lastScroll = now
   el.scrollTo({ left: targetX, top: targetY, behavior: 'instant' })
   e.preventDefault()
+}
+
+const debounce = (func, wait, immediate) => {
+  let timeout = null
+  return function() {
+    let context = this, args = arguments
+    const callNow = immediate && !timeout
+    clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      timeout = null
+      if (!callNow)
+        func.apply(context, args)
+    }, wait)
+    if (callNow)
+      func.apply(context, args)
+  }
 }
 
 </script>

@@ -1,6 +1,5 @@
 import { getRelativePosition } from 'chart.js/helpers'
 
-
 export const ZoomPlugin = {
 
   id: 'zoom',
@@ -18,6 +17,8 @@ export const ZoomPlugin = {
       prevMouseUp: 0,
       prevMouseDown: 0,
       mouseUpListener: null,
+      moveDebounced: debounce((e) => {
+        this.move(chart, getRelativePosition(e, chart)) }, 10, true),
     }
     for (const event of this.events)
       if (chart.options.events.indexOf(event) < 0)
@@ -32,11 +33,14 @@ export const ZoomPlugin = {
 
   afterEvent: function(chart, args) {
 
+    console.log('after event', args.event.type)
+
     // if (args.event.type != 'mousemove')
     //   console.log(args.event.type)
 
     if (args.event.type == 'mousemove') {
-      this.move(chart, getRelativePosition(args.event, chart))
+      // this.move(chart, getRelativePosition(args.event, chart))
+      chart.zoom.moveDebounced(args.event)
     }
 
     if (args.event.type == 'mousedown') {
@@ -162,4 +166,20 @@ export const ZoomPlugin = {
     }
   },
 
+}
+
+const debounce = (func, wait, immediate) => {
+  let timeout = null
+  return function() {
+    let context = this, args = arguments
+    const callNow = immediate && !timeout
+    clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      timeout = null
+      if (!callNow)
+        func.apply(context, args)
+    }, wait)
+    if (callNow)
+      func.apply(context, args)
+  }
 }
