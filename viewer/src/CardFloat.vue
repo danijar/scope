@@ -69,7 +69,7 @@ const dataPosFallback = { x: Number.MAX_VALUE, y: -Number.MAX_VALUE }
 const dataPos = ref(dataPosFallback)
 
 const root = useTemplateRef('root')
-const chart = [null]
+let chart = null
 
 const colors = [
   '#e41a1c',
@@ -116,23 +116,25 @@ const legend = computed(() => {
 
 onMounted(() => {
   const canvas = root.value.$el.querySelector('canvas')
-  chart[0] = createChart(canvas)
+  chart = createChart(canvas)
   updateChart()
 })
 
 watch(() => datasetsList, () => updateChart(), { deep: 2 })
 
 function updateChart() {
-  if (chart[0] === null)
+  if (chart === null)
     return
-
   const datasets = datasetsList.value.slice()
-
   for (const dataset of datasets) {
     let missing = []
-    for (const point of dataset.data)
+    let prev = true
+    for (const [index, point] of dataset.data.entries()) {
       if (point.y === null)
-        missing.push({x: point.x, y: 0})
+        if (prev.y !== null || index == dataset.data.length - 1)
+          missing.push({x: point.x, y: 0})
+      prev = point
+    }
     if (missing.length)
       datasets.push({
         data: missing,
@@ -144,10 +146,8 @@ function updateChart() {
         pointHoverRadius: 10,
       })
   }
-
-  chart[0].data.datasets = datasets
-  // chart[0].update()
-  setTimeout(chart.updateDebounced, 0)
+  chart.data.datasets = datasets
+  chart.updateDebounced()
 }
 
 function createChart(canvas) {
@@ -174,8 +174,7 @@ function createChart(canvas) {
       },
     },
   })
-  chart.updateDebounced = debounce(
-    () => chart.update('none'), 200, true)
+  chart.updateDebounced = debounce(() => chart.update('none'), 200, true)
   return chart
 }
 
@@ -189,8 +188,8 @@ function findNearest(data, target) {
   let bestIndex = 0
   let bestDist = Infinity
   for (const [index, point] of data.entries()) {
-    if (point.y === null)
-      continue
+    // if (point.y === null)
+    //   continue
     const dist = Math.abs(point.x - target)
     if (dist <= bestDist) {
       bestIndex = index
@@ -254,7 +253,7 @@ const debounce = (func, wait, immediate) => {
         func.apply(context, args)
     }, wait)
     if (callNow)
-      func.apply(context, args)
+      setTimeout(() => func.apply(context, args))
   }
 }
 

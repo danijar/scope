@@ -17,13 +17,13 @@ export const ZoomPlugin = {
       prevMouseUp: 0,
       prevMouseDown: 0,
       mouseUpListener: null,
-      moveDebounced: debounce((e) => {
-        this.move(chart, getRelativePosition(e, chart)) }, 10, true),
     }
     for (const event of this.events)
       if (chart.options.events.indexOf(event) < 0)
         chart.options.events.push(event)
     chart.zoom.mouseUpListener = (e) => { this.stopDrag(chart) }
+    chart.zoom.moveDebounced = debounce((e) => {
+        this.move(chart, getRelativePosition(e, chart)) }, 3, true)
     document.addEventListener('mouseup', chart.zoom.mouseUpListener)
   },
 
@@ -33,7 +33,7 @@ export const ZoomPlugin = {
 
   afterEvent: function(chart, args) {
 
-    console.log('after event', args.event.type)
+    // console.log('after event', args.event.type)
 
     // if (args.event.type != 'mousemove')
     //   console.log(args.event.type)
@@ -180,6 +180,6 @@ const debounce = (func, wait, immediate) => {
         func.apply(context, args)
     }, wait)
     if (callNow)
-      func.apply(context, args)
+      setTimeout(() => func.apply(context, args))
   }
 }
