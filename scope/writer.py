@@ -48,7 +48,7 @@ class Writer:
     step = int(step)
     mapping = dict(*args, **kwargs)
     for key, value in mapping.items():
-      if not isinstance(value, str):
+      if not isinstance(value, (str, dict)):
         value = np.asarray(value)
       if key not in self.cols:
         assert re.match(r'[a-z0-9_]+(/[a-z0-9_]+)?', key), key
