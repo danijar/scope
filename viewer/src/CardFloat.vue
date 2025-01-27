@@ -167,6 +167,12 @@ function createChart(canvas) {
       },
       plugins: {
         tooltip: { enabled: false },
+        // decimation: {
+        //   enabled: true,
+        //   // samples: samplesPoints,
+        //   // threshold: thresholdsPoints,
+        //   algorithm: 'min-max',
+        // },
         zoom: {
           enabled: true,
           onMove: (dataXY) => { dataPos.value = dataXY },

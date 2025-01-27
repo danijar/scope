@@ -13,7 +13,14 @@ class Float:
     return 'float'
 
   def valid(self, x):
-    return x.ndim == 0 and np.isreal(x)
+    if isinstance(x, (int, float)):
+      return True
+    if isinstance(x, np.ndarray):
+      return x.ndim == 0 and np.isreal(x)
+    return False
+
+  def convert(self, x):
+    return np.asarray(x, np.float64)
 
   def create(self, path):
     pass
@@ -39,6 +46,9 @@ class Text:
 
   def valid(self, x):
     return isinstance(x, str)
+
+  def convert(self, x):
+    return x
 
   def create(self, path):
     path.mkdir(exist_ok=True)
@@ -71,9 +81,13 @@ class Image:
 
   def valid(self, x):
     return (
+        isinstance(x, np.ndarray) and
         x.dtype == np.uint8 and
         x.ndim == 3 and
         x.shape[-1] in (1, 3))
+
+  def convert(self, x):
+    return x
 
   def create(self, path):
     path.mkdir(exist_ok=True)
@@ -112,9 +126,13 @@ class Video:
 
   def valid(self, x):
     return (
+        isinstance(x, np.ndarray) and
         x.dtype == np.uint8 and
         x.ndim == 4 and
         x.shape[-1] in (1, 3))
+
+  def convert(self, x):
+    return x
 
   def create(self, path):
     path.mkdir(exist_ok=True)

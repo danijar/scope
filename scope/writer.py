@@ -48,8 +48,6 @@ class Writer:
     step = int(step)
     mapping = dict(*args, **kwargs)
     for key, value in mapping.items():
-      if not isinstance(value, str):
-        value = np.asarray(value)
       if key not in self.cols:
         assert re.match(r'[a-z0-9_]+(/[a-z0-9_]+)?', key), key
         for fmt in self.fmts:
@@ -64,6 +62,7 @@ class Writer:
       if not col.fmt.valid(value):
         raise ValueError(
             f"Key '{key}' contains invalid value {self._info(value)}")
+      value = col.fmt.convert(value)
       col.steps.append(step)
       col.values.append(value)
 
