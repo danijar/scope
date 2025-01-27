@@ -37,7 +37,7 @@ class Writer:
     self.logdir.mkdir(parents=True, exist_ok=True)
     self.workers = workers
     self.rng = np.random.default_rng(seed=None)
-    self.fmts = FORMATS
+    self.fmts = formats
     self.cols = {}
     if workers:
       self.pool = concurrent.futures.ThreadPoolExecutor(workers, 'scope')
