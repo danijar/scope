@@ -7,13 +7,12 @@ import numpy as np
 
 from . import formats
 
-FPS = 10
 
 FORMATS = [
     formats.Text(),
     formats.Float(),
     formats.Image(),
-    formats.Video(fps=FPS),
+    formats.Video(fps=10),
 ]
 
 

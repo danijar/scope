@@ -1,6 +1,7 @@
 av
 elements>=3.16.6
 fastapi
+mediapy
 numpy
 pillow
 uvicorn[standard]

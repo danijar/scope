@@ -176,6 +176,47 @@ class Video:
     return files_length(path)
 
 
+class MediapyVideo:
+
+  def __init__(self, ext='mp4', fps=10):
+    self.ext = ext
+    self.fps = fps
+
+  @property
+  def extension(self):
+    return self.ext
+
+  def valid(self, x):
+    return (
+        isinstance(x, np.ndarray) and
+        x.dtype == np.uint8 and
+        x.ndim == 4 and
+        x.shape[-1] in (1, 3))
+
+  def convert(self, x):
+    return x
+
+  def create(self, path):
+    path.mkdir(exist_ok=True)
+
+  def write(self, path, steps, values):
+    files_write(path, steps, values, self.encode)
+
+  def read(self, path):
+    return files_read(path)
+
+  def encode(self, value):
+    import mediapy
+    return mediapy.compress_video(value, fps=self.fps)
+
+  def decode(self, buffer):
+    import mediapy
+    return mediapy.decompress_video(buffer)
+
+  def length(self, path):
+    return files_length(path)
+
+
 def table_append(filename, fmt, *cols):
   rows = tuple(zip(*cols))
   size = struct.calcsize(fmt)
