@@ -1,16 +1,21 @@
 import pathlib
 
-import scope
 import numpy as np
+import pytest
+import scope
 
 
 class TestVideo:
 
-  def test_roundtrip(self, tmpdir):
+  @pytest.mark.parametrize('channels', (3, 1))
+  @pytest.mark.parametrize('fmt', (
+      scope.formats.Video(fps=10),
+  ))
+  def test_roundtrip(self, tmpdir, fmt, channels):
     logdir = pathlib.Path(tmpdir)
-    writer = scope.Writer(logdir, workers=0)
-    vid1 = np.ones((5, 64, 128, 3), np.uint8) + 12
-    vid2 = np.ones((5, 64, 128, 3), np.uint8) + 255
+    writer = scope.Writer(logdir, workers=0, formats=[fmt])
+    vid1 = np.ones((5, 64, 128, channels), np.uint8) + 12
+    vid2 = np.ones((5, 64, 128, channels), np.uint8) + 255
     writer.add(0, {'foo': vid1})
     writer.add(5, {'foo': vid2})
     writer.flush()

@@ -194,6 +194,8 @@ class MediapyVideo:
         x.shape[-1] in (1, 3))
 
   def convert(self, x):
+    if x.shape[-1] == 1:
+      x = x.repeat(3, -1)
     return x
 
   def create(self, path):
