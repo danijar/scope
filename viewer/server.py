@@ -71,7 +71,7 @@ def get_col(colid: str):
     buffer = fs.read(path)
     steps, values = tuple(zip(*struct.iter_unpack('>qd', buffer)))
     return {'id': colid, 'run': runid, 'steps': steps, 'values': values}
-  elif ext in ('txt', 'mp4', 'webm'):
+  elif ext in ('txt', 'png', 'jpg', 'jpeg', 'mp4', 'webm'):
     buffer = fs.read(path + '/index')
     steps, idents = tuple(zip(*struct.iter_unpack('q8s', buffer)))
     filenames = [f'{s:020}-{x.hex()}.{ext}' for s, x in zip(steps, idents)]
@@ -86,9 +86,12 @@ def get_file(request: fastapi.Request, fileid: str):
   print(f'GET /file/{fileid}', flush=True)
   ext = fileid.rsplit('.', 1)[-1]
   path = basedir + '/' + fileid.replace(':', '/')
-  if ext == 'txt':
+  if ext in ('txt',):
     text = cachedfs.read(path).decode('utf-8')
     return {'id': fileid, 'text': text}
+  elif ext in ('png', 'jpg', 'jpeg'):
+    data = cachedfs.read(path)
+    return fastapi.Response(content=data, media_type=f'image/{ext}')
   elif ext in ('mp4', 'webm'):
     filesize = cachedfs.size(path)
     openfn = functools.partial(cachedfs.open, path)

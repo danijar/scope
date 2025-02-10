@@ -9,8 +9,9 @@ import Selector from './Selector.vue'
 import Options from './Options.vue'
 import Card from './Card.vue'
 import CardFloat from './CardFloat.vue'
-import CardVideo from './CardVideo.vue'
 import CardText from './CardText.vue'
+import CardImage from './CardImage.vue'
+import CardVideo from './CardVideo.vue'
 
 const settings = reactive(loadStorage('settings', {
   columns: 3,
@@ -81,6 +82,9 @@ document.addEventListener('mousedown', (e) => {
             :name="card.name" :cols="card.cols" class="card" />
           <CardText
             v-else-if="card.ext == 'txt'"
+            :name="card.name" :cols="card.cols" class="card" />
+          <CardImage
+            v-else-if="['png', 'jpg', 'jpeg'].includes(card.ext)"
             :name="card.name" :cols="card.cols" class="card" />
           <CardVideo
             v-else-if="['mp4', 'webm'].includes(card.ext)"
