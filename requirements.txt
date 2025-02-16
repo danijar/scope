@@ -3,5 +3,6 @@ elements>=3.16.6
 fastapi
 mediapy
 numpy
+orjson
 pillow
 uvicorn[standard]
