@@ -18,9 +18,13 @@ const aggFn = (vals) => {
   return vals.reduce((a, b) => a + b) / vals.length
 }
 
+const showMissing = ref(true)
+
 const datasetsCache = reactiveCache(colid => {
   const col = store.availableCols.value[colid]
   let data = col.steps.map((step, j) => ({ x: step, y: col.values[j]}))
+  if (!showMissing.value)
+    data = data.filter(point => (point.y !== null))
   if (store.options.binsize)
     data = binning(data, store.options.binsize, aggFn)
   return {
@@ -67,7 +71,6 @@ const loading = computed(() => {
 
 const dataPosFallback = { x: Number.MAX_VALUE, y: -Number.MAX_VALUE }
 const dataPos = ref(dataPosFallback)
-
 const root = useTemplateRef('root')
 let chart = null
 
@@ -85,6 +88,7 @@ const colors = [
 
 const legend = computed(() => {
   return datasetsList.value
+    .filter(dataset => (dataset.data.length > 0))
     .map(dataset => {
       const index = findNearest(dataset.data, dataPos.value.x)
       const step = dataset.data[index].x
@@ -263,26 +267,38 @@ const debounce = (func, wait, immediate) => {
   }
 }
 
+function toggleMissing() {
+  showMissing.value = !showMissing.value
+  datasetsCache.refresh()
+}
+
 </script>
 
 <template>
-  <Card :name="props.name" :loading="loading" :scrollX="false" :scrollY="false" ref="root">
-    <template #default>
-      <div class="content layoutCol">
-        <div class="chart" @wheel="wheel">
-          <canvas></canvas>
+<Card :name="props.name" :loading="loading" :scrollX="false" :scrollY="false" ref="root">
+
+  <template #buttons>
+    <span class="btn icon" @click="toggleMissing" :title="showMissing ? 'Hide missing values' : 'Show missing values'">
+      {{ showMissing ? 'filter_alt' : 'filter_alt_off' }}</span>
+  </template>
+
+  <template #default>
+    <div class="content layoutCol">
+      <div class="chart" @wheel="wheel">
+        <canvas></canvas>
+      </div>
+      <div class="legend">
+        <div class="entry" v-for="entry in legend" :key="entry.run">
+          <div :style="{ background: entry.color }"></div>
+          <div>{{ entry.run }}</div>
+          <div>{{ entry.formattedStep }}</div>
+          <div>{{ entry.formattedValue }}</div>
         </div>
-        <div class="legend">
-          <div class="entry" v-for="entry in legend" :key="entry.run">
-            <div :style="{ background: entry.color }"></div>
-            <div>{{ entry.run }}</div>
-            <div>{{ entry.formattedStep }}</div>
-            <div>{{ entry.formattedValue }}</div>
-          </div>
-        </div>
-     </div>
-    </template>
-  </Card>
+      </div>
+   </div>
+  </template>
+
+</Card>
 </template>
 
 <style scoped>

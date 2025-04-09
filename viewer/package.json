@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "frontend": "vite",
+    "frontend": "vite --host",
     "backend": "cd .. && python -m viewer --debug=True",
     "dev": "concurrently 'npm run frontend' 'npm run backend'",
     "build": "vite build",

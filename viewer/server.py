@@ -179,4 +179,4 @@ def RangeResponse(request, openfn, filesize, content_type):
         nbytes += len(chunk)
         yield chunk
   return fastapi.responses.StreamingResponse(
-    iterfile(), headers=headers, status_code=status_code)
+      iterfile(), headers=headers, status_code=status_code)
