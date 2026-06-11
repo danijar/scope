@@ -46,6 +46,8 @@ module-name = ["scope", "scope_viewer"]
 
 [tool.taskipy.tasks]
 build = "cd scope_viewer && npm install && npm run build && cd .. && uv build"
+check = "ruff check"
+format = "ruff format"
 
 [tool.ruff]
 line-length = 79
