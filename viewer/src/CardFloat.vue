@@ -60,7 +60,7 @@ const datasetsList = computed(() => {
     .sort()
     .filter(colid => colid in datasetsCache.value)
     .map(colid => datasetsCache.value[colid])
-    .map((col, i) => ({ ...col, borderColor: colors[i % colors.length] }))
+    .map(col => ({ ...col, borderColor: colors[store.availableRuns.value.indexOf(col.label) % colors.length] }))
 })
 
 const loading = computed(() => {
