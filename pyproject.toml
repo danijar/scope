@@ -48,6 +48,7 @@ module-name = ["scope", "scope_viewer"]
 build = "cd scope_viewer && npm install && npm run build && cd .. && uv build"
 check = "ruff check"
 format = "ruff format"
+test = "uv run pytest"
 
 [tool.ruff]
 line-length = 79
