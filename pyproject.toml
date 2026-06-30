@@ -17,6 +17,7 @@ dependencies = [
   "av",
   "elements>=3.16.6",
   "fastapi",
+  "filelock",
   "mediapy",
   "numpy",
   "orjson",

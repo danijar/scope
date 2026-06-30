@@ -4,6 +4,7 @@ import pathlib
 import subprocess
 
 import elements
+import filelock
 
 
 class Local:
@@ -103,6 +104,7 @@ class WithFileCache:
         self.localfs = Local()
         self.cachedir = cachedir
         self.maxsize = maxsize
+        self.lock = filelock.FileLock(cachedir / '.lock')
 
     def list(self, path):
         return self.fs.list(path)
@@ -124,23 +126,24 @@ class WithFileCache:
         localpath = self.cachedir / name
         if not localpath.exists():
             buffer = self.fs.read(path)
-            self._freeup(len(buffer), path)
+            self._freeup(len(buffer))
             localpath.write_bytes(buffer)
         return localpath
 
-    def _freeup(self, needed, path):
-        # Catch errors because parallel workers share the cache.
-        pairs = []
-        for path in self.cachedir.glob('*'):
-            try:
-                stat = path.stat()
-                pairs.append((path, stat))
-            except FileNotFoundError:
-                pass
-        pairs = sorted(pairs, key=lambda x: x[1].st_ctime)
-        while sum([s.st_size for p, s in pairs]) + needed > self.maxsize:
-            path, _ = pairs.pop(0)
-            try:
+    def _freeup(self, needed):
+        with self.lock:
+            pairs = []
+            for path in self.cachedir.glob('*'):
+                if path.name == '.lock':
+                    continue
+                try:
+                    stat = path.stat()
+                    pairs.append((path, stat))
+                except FileNotFoundError:
+                    pass
+            pairs = sorted(pairs, key=lambda x: x[1].st_ctime)
+            total = sum(s.st_size for _, s in pairs)
+            while total + needed > self.maxsize and pairs:
+                path, stat = pairs.pop(0)
                 path.unlink()
-            except IndexError:
-                pass
+                total -= stat.st_size
