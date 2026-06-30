@@ -131,19 +131,21 @@ class WithFileCache:
         return localpath
 
     def _freeup(self, needed):
+        pairs = []
+        for path in self.cachedir.glob('*'):
+            if path.name == '.lock':
+                continue
+            try:
+                stat = path.stat()
+                pairs.append((path, stat))
+            except FileNotFoundError:
+                pass
+        total = sum(s.st_size for _, s in pairs)
+        if total + needed <= self.maxsize:
+            return
+        pairs = sorted(pairs, key=lambda x: x[1].st_ctime)
         with self.lock:
-            pairs = []
-            for path in self.cachedir.glob('*'):
-                if path.name == '.lock':
-                    continue
-                try:
-                    stat = path.stat()
-                    pairs.append((path, stat))
-                except FileNotFoundError:
-                    pass
-            pairs = sorted(pairs, key=lambda x: x[1].st_ctime)
-            total = sum(s.st_size for _, s in pairs)
             while total + needed > self.maxsize and pairs:
                 path, stat = pairs.pop(0)
-                path.unlink()
+                path.unlink(missing_ok=True)
                 total -= stat.st_size
