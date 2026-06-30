@@ -1,6 +1,6 @@
 [project]
 name = "scope"
-version = "0.7.0"
+version = "0.7.1"
 requires-python = ">=3.10"
 description = "Metrics logging and analysis"
 readme="README.md"
@@ -17,6 +17,7 @@ dependencies = [
   "av",
   "elements>=3.16.6",
   "fastapi",
+  "filelock",
   "mediapy",
   "numpy",
   "orjson",
