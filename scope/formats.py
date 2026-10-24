@@ -61,7 +61,7 @@ class Text:
         return value.encode('utf-8')
 
     def decode(self, buffer):
-        return buffer.deceode('utf-8')
+        return buffer.decode('utf-8')
 
     def length(self, path):
         return files_length(path)
