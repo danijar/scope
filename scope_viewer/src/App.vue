@@ -56,7 +56,6 @@ document.addEventListener('mousedown', (e) => {
   <div class="content layoutRow">
 
     <div class="right layoutCol">
-      <Path class="path"/>
       <Selector
         :items="store.availableExps.value" v-model="store.selExps.value" :reverse="true"
         :loading="!!store.pendingEids.value" storageKey="selectorFolders"
@@ -65,6 +64,7 @@ document.addEventListener('mousedown', (e) => {
         :items="store.availableRuns.value" v-model="store.selRuns.value"
         :loading="!!store.pendingExps.value.size" storageKey="selectorRuns"
         title="Runs" class="selector" />
+      <Path class="path"/>
     </div>
 
     <div class="left layoutCol">

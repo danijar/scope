@@ -14,12 +14,12 @@ function apply() {
 
 <template>
 <div class="path layoutCol">
-  <h2>Path</h2>
-  <div class="layoutRow">
+  <h2>Root</h2>
+  <div class="inputs layoutRow">
     <InputText
-      v-model="text" class="input" placeholder="basedir"
+      v-model="text" class="input"
       insetIcon="folder" @keydown.enter="apply"/>
-    <button class="btn icon" @click="apply" title="Apply">check</button>
+    <button class="btn icon" @click="apply" title="Apply">arrow_forward</button>
   </div>
 </div>
 </template>
@@ -27,7 +27,7 @@ function apply() {
 <style scoped>
 
 h2 { margin: 0 0 .9rem; }
-.input { flex: 1 1; }
-.btn { margin-left: .5rem; }
+.inputs { align-items: center; }
+.input { flex: 1 1; margin-right: .3rem; }
 
 </style>
