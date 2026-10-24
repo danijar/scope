@@ -75,8 +75,8 @@ function nearestIndex(steps, target) {
 <Card :name="props.name" :loading="loading" :scrollX="false" :scrollY="true">
   <div v-for="entry in entries" class="entry">
     <h3> {{ entry.run }}</h3>
-      <span class="count">Index: {{ entry.selectedIndex }}/{{ entry.steps.length }}</span>
-      <span class="step">Step: {{ entry.selectedStep }}/{{ entry.maxStep }}</span><br>
+      <span class="count">Index: <span :class="{ old: entry.selectedStep < entry.maxStep }">{{ entry.selectedIndex }}/{{ entry.steps.length - 1 }}</span></span>
+      <span class="step">Step: <span :class="{ old: entry.selectedStep < entry.maxStep }">{{ entry.selectedStep }}/{{ entry.maxStep }}</span><span v-if="entry.selectedStep < entry.maxStep" class="btn icon" @click="store.options.stepsel = null" title="Clear step">history</span></span><br>
     <pre v-if="entry.file in cachedFiles" v-html="cachedFiles[entry.file].text"></pre>
     <span v-else class="icon spinner">progress_activity</span>
   </div>
@@ -92,6 +92,8 @@ h3 { margin: 0; word-break: break-all; }
 pre { margin: .3rem 0 0; padding: .3rem; font-family: monospace; background: var(--bg2); color: var(--fg2); border-radius: .2rem; overflow: auto; }
 
 .count, .step { display: inline-block; margin: .2rem .5rem .2rem 0; }
+.step .icon { font-size: 1.2em; margin-left: .2rem; padding: .1rem; }
+.old { font-weight: bold; }
 
 </style>
 

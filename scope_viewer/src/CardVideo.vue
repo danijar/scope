@@ -144,8 +144,8 @@ function seekDone(e) {
   <template #default>
     <div v-for="entry in entries" :key="entry.url" class="entry" :class="{ large }">
       <h3> {{ entry.run }}</h3>
-      <span class="count">Index: {{ entry.selectedIndex }}/{{ entry.steps.length }}</span>
-      <span class="step">Step: {{ entry.selectedStep }}/{{ entry.maxStep }}</span><br>
+      <span class="count">Index: <span :class="{ old: entry.selectedStep < entry.maxStep }">{{ entry.selectedIndex }}/{{ entry.steps.length - 1 }}</span></span>
+      <span class="step">Step: <span :class="{ old: entry.selectedStep < entry.maxStep }">{{ entry.selectedStep }}/{{ entry.maxStep }}</span><span v-if="entry.selectedStep < entry.maxStep" class="btn icon" @click="store.options.stepsel = null" title="Clear step">history</span></span><br>
       <div class="player">
         <video
           :controls="controls" loop tabindex="-1" :url="entry.url"
@@ -176,6 +176,8 @@ video { max-width: 100%; max-height: 25rem; }
 .spinner { display: block; position: absolute; top: 50%; left: 50%; margin: -.5em; font-size: 3rem; }
 
 .count, .step { display: inline-block; margin: .2rem .5rem .2rem 0; }
+.step .icon { font-size: 1.2em; margin-left: .2rem; padding: .1rem; }
+.old { font-weight: bold; }
 
 </style>
 
