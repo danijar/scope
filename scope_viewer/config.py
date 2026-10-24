@@ -9,7 +9,7 @@ config = elements.Flags(
     filesystem=os.environ.get('SCOPE_FILESYSTEM', 'elements'),
     cachedir='/tmp/scope-cache',
     cachesize=int(4e9),  # 4 GB
-    maxdepth=2,
+    maxdepth=1,
     workers=32,
     debug=False,
 ).parse()

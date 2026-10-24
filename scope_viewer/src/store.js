@@ -42,6 +42,7 @@ const cachedCols = ref({})
 const selExps = ref(loadStorage('selExps', new Set()))
 const selRuns = ref(loadStorage('selRuns', new Set()))
 const selMets = ref(loadStorage('selMets', new Set()))
+const path = ref(loadStorage('path', ''))
 
 /*****************************************************************************
  * Persistence
@@ -53,6 +54,7 @@ watch(() => cachedRuns, x => saveStorage('cachedRuns', x.value), { deep: 2 })
 watch(() => selExps, x => saveStorage('selExps', x.value), { deep: 2 })
 watch(() => selRuns, x => saveStorage('selRuns', x.value), { deep: 2 })
 watch(() => selMets, x => saveStorage('selMets', x.value), { deep: 2 })
+watch(() => path, x => saveStorage('path', x.value, true), { deep: 2 })
 
 /*****************************************************************************
  * Computed
@@ -103,7 +105,8 @@ async function updateEids(force = false) {
   if (cachedEids.value.length > 0 && !force)
     return
   pendingEids.value = true
-  get('/api/exps')
+  const dirid = path.value.replaceAll('/', ':')
+  get(dirid ? `/api/exps/${dirid}` : '/api/exps')
     .then(data => cachedEids.value = data['exps'])
     .finally(() => pendingEids.value = false)
 }
@@ -164,6 +167,7 @@ async function refresh() {
  *****************************************************************************/
 
 updateEids()
+watch(path, () => updateEids(true))
 setTimeout(() => {
   watch(() => selExps, () => updateExps(false), { deep: 2 })
   watch(() => selRuns, () => updateRuns(false), { deep: 2 })
@@ -210,6 +214,7 @@ const store = {
   selExps,
   selRuns,
   selMets,
+  path,
 
   // updateEids,
   // updateExps,

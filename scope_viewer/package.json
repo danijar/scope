@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "frontend": "vite --host",
-    "backend": "cd .. && python -m viewer --debug=True",
-    "dev": "concurrently 'npm run frontend' 'npm run backend'",
+    "backend": "cd .. && SCOPE_PORT=${SCOPE_PORT:-6000} uv run python -m scope_viewer --debug=True",
+    "dev": "node dev.js",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -16,7 +16,6 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
-    "concurrently": "^9.0.1",
     "vite": "^5.3.1",
     "vite-plugin-vue-devtools": "^7.3.1"
   }

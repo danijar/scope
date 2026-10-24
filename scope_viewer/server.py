@@ -35,17 +35,20 @@ else:
 
 
 @app.get('/api/exps')
-def get_exps():
-    print('GET /exps', flush=True)
-    folders = fs.list(basedir)
-    expids = [x.rsplit('/', 1)[-1] for x in folders]
+@app.get('/api/exps/{dirid}')
+def get_exps(dirid: str = ''):
+    assert '..' not in dirid.split(':'), dirid
+    print(f'GET /exps/{dirid}', flush=True)
+    parts = [x for x in dirid.split(':') if x]
+    folders = fs.list('/'.join([basedir, *parts]))
+    expids = [':'.join([*parts, x.rsplit('/', 1)[-1]]) for x in folders]
     return {'exps': expids}
 
 
 @app.get('/api/exp/{expid}')
 def get_exp(expid: str):
     print(f'GET /exp/{expid}', flush=True)
-    folders = find_runs(basedir + '/' + expid)
+    folders = find_runs(basedir + '/' + expid.replace(':', '/'))
     folders = [x.removeprefix(str(basedir))[1:] for x in folders]
     runids = [x.replace('/', ':') for x in folders]
     return {'id': expid, 'runs': runids}

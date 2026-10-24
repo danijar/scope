@@ -7,6 +7,7 @@ import { handleKeydown } from './keynav.js'
 
 import Selector from './Selector.vue'
 import Options from './Options.vue'
+import Path from './Path.vue'
 import Card from './Card.vue'
 import CardFloat from './CardFloat.vue'
 import CardText from './CardText.vue'
@@ -55,6 +56,7 @@ document.addEventListener('mousedown', (e) => {
   <div class="content layoutRow">
 
     <div class="right layoutCol">
+      <Path class="path"/>
       <Selector
         :items="store.availableExps.value" v-model="store.selExps.value" :reverse="true"
         :loading="!!store.pendingEids.value" storageKey="selectorFolders"
@@ -127,11 +129,12 @@ document.addEventListener('mousedown', (e) => {
 
 .selector { flex: 1 1 0; overflow: hidden; padding: 1rem 0 0 1rem; }
 .options { flex: 1 1 0; padding: 1rem; }
+.path { flex: 0 0 content; padding: 1rem; }
 .spacer { flex: 1 1 0; }
 
 .cards { --columns: v-bind(settings.columns); width: 100%; display: grid; grid-template-columns: repeat(var(--columns), 1fr); gap: 1rem; overflow: auto; padding: 1rem; padding-top: .8rem; }
 .card { height: 30rem; max-height: 80vh; border-radius: .5rem; }
 
-.header, .selector, .options { border-bottom: .2rem solid var(--bg3); }
+.header, .selector, .options, .path { border-bottom: .2rem solid var(--bg3); }
 
 </style>
