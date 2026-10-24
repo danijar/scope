@@ -1,6 +1,6 @@
 [project]
 name = "scope"
-version = "0.8.0"
+version = "0.8.1"
 requires-python = ">=3.10"
 description = "Metrics logging and analysis"
 readme="README.md"
@@ -46,6 +46,7 @@ module-root = "."
 module-name = ["scope", "scope_viewer"]
 
 [tool.taskipy.tasks]
+dev = "cd scope_viewer && npm run dev --"
 build = "cd scope_viewer && npm install && npm run build && cd .. && uv build"
 check = "ruff check"
 format = "ruff format"

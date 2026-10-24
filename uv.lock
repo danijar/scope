@@ -2242,7 +2242,7 @@ wheels = [
 
 [[package]]
 name = "scope"
-version = "0.7.1"
+version = "0.8.1"
 source = { editable = "." }
 dependencies = [
     { name = "av" },
