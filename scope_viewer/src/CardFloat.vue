@@ -56,11 +56,12 @@ watch(() => store.options.binsize, () => {
 }, { deep: true })
 
 const datasetsList = computed(() => {
+  const runs = [...new Set([...store.availableRuns.value, ...store.selRuns.value])].sort()
   return props.cols
     .sort()
     .filter(colid => colid in datasetsCache.value)
     .map(colid => datasetsCache.value[colid])
-    .map(col => ({ ...col, borderColor: colors[store.availableRuns.value.indexOf(col.label) % colors.length] }))
+    .map(col => ({ ...col, borderColor: colors[runs.indexOf(col.label) % colors.length] }))
 })
 
 const loading = computed(() => {
