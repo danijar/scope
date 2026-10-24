@@ -168,6 +168,11 @@ async function refresh() {
 
 updateEids()
 watch(path, () => updateEids(true))
+const params = new URLSearchParams(location.search)
+if (params.has('root')) {
+  path.value = params.get('root').replaceAll(':', '/')
+  history.replaceState(null, '', location.pathname)
+}
 setTimeout(() => {
   watch(() => selExps, () => updateExps(false), { deep: 2 })
   watch(() => selRuns, () => updateRuns(false), { deep: 2 })
