@@ -57,3 +57,10 @@ print(values)                      # np.array([42, 42, 42], np.float64)
 steps, filenames = reader['bar']
 reader.load('bar', filenames[-1])  # np.zeros((100, 640, 360, 3), np.uint8)
 ```
+
+## Development
+
+```sh
+cd scope_viewer
+npm run dev --basedir ... --port 8000
+```
